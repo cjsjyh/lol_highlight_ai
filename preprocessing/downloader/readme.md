@@ -37,3 +37,7 @@ sudo chmod a+rx /usr/local/bin/youtube-dl
 // MacOS
 brew install youtube-dl
 ```
+
+## twitch_list_processor.py
+can get a list of LCK videos by tiwtch-dl videos lck.
+after that, make a list from the text to automate download process
