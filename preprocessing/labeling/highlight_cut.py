@@ -32,23 +32,23 @@ def match_check(img1, img2):
     return num
 
 if __name__ == "__main__":
-    capture = cv2.VideoCapture("/home/sinunu/Desktop/highlight_360.mp4")
+    capture = cv2.VideoCapture("/home/lol/highlight_360.mp4")
     prev_frame = np.zeros([360, 640, 3], dtype = np.uint8)
 
     num = 1
     while True:
         if(capture.get(cv2.CAP_PROP_POS_FRAMES) == capture.get(cv2.CAP_PROP_FRAME_COUNT)):
-            capture.open("/home/sinunu/Desktop/highlight_360.mp4")
+            capture.open("/home/lol/highlight_360.mp4")
 
 
         ret, frame = capture.read()
         if num % 30 == 0:
-            print(f'{num//1800}:{num//30%60}', match_check(prev_frame, frame))
+            sim = match_check(prev_frame, frame)
+            if sim <= 300:
+                print(f'{num//1800}:{num//30%60}', sim)
             prev_frame = frame
 
-        cv2.imshow("VideoFrame", frame)
-
-        if cv2.waitKey(10) > 0: break
+        if cv2.waitKey(1) > 0: break
         num += 1
 
     capture.release()
