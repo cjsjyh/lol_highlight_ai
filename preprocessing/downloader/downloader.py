@@ -10,13 +10,33 @@ args = parser.parse_args()
 
 f = open(args.f,"r")
 while True:
-	line = f.readline()
-	if not line: break
+    title = f.readline()
+    timestamp = f.readline()
+    url = f.readline()
+    if not title: break
 
-	video_url = line.strip()
-	if args.o == "quality":
-		subprocess.call(f"youtube-dl -F {video_url}", shell=True)
-	if args.o == "download":
-		subprocess.call(f"youtube-dl -f {args.q} {video_url}", shell=True)
-	print(line.strip())
+    title_split = title.split()
+    filename = ""
+    for index, word in enumerate(title_split):
+        if word == "vs" or word == "vs." or word == ".vs":
+            team1 = title_split[index-1]
+            team2 = title_split[index+1]
+            filename += f'_{team1}_{team2}'
+    if filename != "":
+        timestamp_split = timestamp.split()
+        datestring = timestamp_split[1].replace('-','')
+        datestring = "".join(datestring)
+        filename = datestring + filename
+        print(filename)
+    else:
+        print("Unhandled title: " + title)
+        break
+
+    video_url = url.strip()
+    if args.o == "quality":
+        subprocess.call(f"youtube-dl -F {video_url}", shell=True)
+    if args.o == "download":
+        subprocess.call(f'youtube-dl -f {args.q} -o "full_raw/{filename}.mp4" {video_url}', shell=True)
+    print(title)
 f.close()
+
