@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#/usr/bin/env python
 # coding: utf-8
 
 
@@ -91,9 +91,6 @@ def is_ingame(data_set):
         return torch.argmax(prediction, 1)
 
 
-# Import Video related Packages
-get_ipython().system('pip3 install opencv-python')
-
 import os, shutil
 def clear_directory(path):
   for filename in os.listdir(path):
@@ -109,11 +106,10 @@ from PIL import Image
 import cv2
 print(cv2.__version__)
 
-
 import math
 
 def FindTransitions(path_in, video_name, path_out, start = -1, until=-1, frame=60):
-    print("Extract Images Start")
+    print("Find Transitions Start")
     # Initialize local variables
     frame_number = 0
     save_count = 0
@@ -121,14 +117,18 @@ def FindTransitions(path_in, video_name, path_out, start = -1, until=-1, frame=6
     saved_frame = []
     success = True
     curInGame = False # Currently In game?
+    curInGameCount = 0
 
     # Initialize result file
-    result_file = open(f"{video_name.replace('.mp4','')}.txt", 'w+')
+    result_file = open(path_out + f"/{video_name.replace('.mp4','')}.txt", 'w+')
 
     # Initialize OpenCV
-    vidcap = cv2.VideoCapture(root_path + path_in)
+    print("Processing: " + path_in + video_name)
+    vidcap = cv2.VideoCapture(path_in + video_name)
+    print("Is Open: " + str(vidcap.isOpened()))
     success,image = vidcap.read()
     fps = vidcap.get(cv2.CAP_PROP_FPS)
+    print("FPS: "+str(fps))
 
     # Initialize PyTorch transform
     trans = transforms.Compose([
@@ -143,46 +143,64 @@ def FindTransitions(path_in, video_name, path_out, start = -1, until=-1, frame=6
             break
         # Save frame image
         if (frame_number % frame == 0 and frame_number >= frame * last_check):
-            cv2.imwrite( root_path + path_out + "/temp/frame%d.jpg" % frame_number, image)     # save frame as JPEG file
+            cv2.imwrite(path_out + "/temp/frame%d.jpg" % frame_number, image)     # save frame as JPEG file
             save_count += 1
             saved_frame.append(frame_number)
 
         # Inference per 30 saved image
         if (save_count % 30 == 0 and save_count > last_check):
-            dataset = torchvision.datasets.ImageFolder(root_path + path_out, transform=trans)
+            print(f"Checking Frame: {frame_number}")
+            dataset = torchvision.datasets.ImageFolder(path_out, transform=trans)
             dataloader = DataLoader(dataset=dataset, batch_size=10, shuffle=False)
             inference_result = is_ingame(dataloader)
             # Check frame inference result
             for (index,isInGame) in enumerate(inference_result.tolist()):
                 in_seconds = math.floor(saved_frame[index]/fps)
-                _min = math.floor(in_seconds / 60)
                 _sec = in_seconds % 60
+                _min = math.floor(in_seconds / 60) % 60
+                _hr = math.floor(in_seconds / 60) / 60
                 # If frame is in game
                 if (isInGame == 1):
                     if (not curInGame):
-                        result_file.write(f"Gamestart: {in_seconds} {_min}:{_sec}\n")
-                        curInGame = True
+                        if (curInGameCount == 2):
+                            print(f"Game started {_min}:{_sec}")
+                            result_file.write(f"Gamestart: {saved_frame[index]} {in_seconds} {_hr}:{_min}:{_sec}\n")
+                            curInGameCount = 0
+                            curInGame = True
+                        else:
+                            if(curInGameCount < 0):
+                                curInGameCount = 0
+                            curInGameCount += 1
                 else:
                     if (curInGame):
-                        result_file.write(f"GameFinished: {in_seconds} {_min}:{_sec}\n")
-                        curInGame = False
+                        if (curInGameCount == -2):
+                            print(f"Game Finished {_min}:{_sec}")
+                            result_file.write(f"GameFinished:{saved_frame[index]} {in_seconds} {_hr}:{_min}:{_sec}\n")
+                            curInGameCount = 0
+                            curInGame = False
+                        else:
+                            if(curInGameCount > 0):
+                                curInGameCount = 0
+                            curInGameCount += -1
             saved_frame[:] = []
             last_check = save_count
             #clear folder
-            clear_directory(root_path + path_out + "/temp")
+            clear_directory(path_out + "/temp")
 
         if (until != -1 and save_count == until):
             break
         frame_number += 1
-    clear_directory(root_path + path_out + "/temp")
+    clear_directory(path_out + "/temp")
     result_file.close()
+    vidcap.release()
     print(video_name + " Done!")
 
 
 # In[14]:
 
 
-FindTransitions("/raw/","game2.mp4", "/temp_inference", 500, 1000)
+FindTransitions("/home/lol/lol_highlight_ai/preprocessing/downloader/full_raw/","20200228_APK_DRX_T1_SB.mp4",
+"/home/lol/lol_highlight_ai/preprocessing/ingame_classifier/inference_result")
 
 
 # In[ ]:
