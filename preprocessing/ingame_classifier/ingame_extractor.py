@@ -120,7 +120,7 @@ def FindTransitions(path_in, video_name, path_out, start = -1, until=-1, frame=6
     curInGameCount = 0
 
     # Initialize result file
-    result_file = open(path_out + f"/{video_name.replace('.mp4','')}.txt", 'w+')
+    result_file = open(path_out + f"/{video_name.replace('.mp4','')}_raw.txt", 'w+')
 
     # Initialize OpenCV
     print("Processing: " + path_in + video_name)
@@ -164,7 +164,7 @@ def FindTransitions(path_in, video_name, path_out, start = -1, until=-1, frame=6
                     if (not curInGame):
                         if (curInGameCount == 2):
                             print(f"Game started {_min}:{_sec}")
-                            result_file.write(f"Gamestart: {saved_frame[index]} {in_seconds} {_hr}:{_min}:{_sec}\n")
+                            result_file.write(f"start {saved_frame[index]} {in_seconds} {_hr}:{_min}:{_sec}\n")
                             curInGameCount = 0
                             curInGame = True
                         else:
@@ -175,7 +175,7 @@ def FindTransitions(path_in, video_name, path_out, start = -1, until=-1, frame=6
                     if (curInGame):
                         if (curInGameCount == -2):
                             print(f"Game Finished {_min}:{_sec}")
-                            result_file.write(f"GameFinished:{saved_frame[index]} {in_seconds} {_hr}:{_min}:{_sec}\n")
+                            result_file.write(f"finish:{saved_frame[index]} {in_seconds} {_hr}:{_min}:{_sec}\n")
                             curInGameCount = 0
                             curInGame = False
                         else:
