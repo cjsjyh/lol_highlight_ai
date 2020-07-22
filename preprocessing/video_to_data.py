@@ -6,14 +6,16 @@ import torchvision
 import urllib
 from PIL import Image
 from torchvision import transforms
-
-
+import time
+import cpd_auto
+import numpy
 def get_pool5(name,pool5):
     def hook(model, input, output):
         pool5[name] = output.detach()
     return hook
 #get video objects
 def get_googlenet_pool5(video_name,per_frame):
+    start = time.time()
     capture_ori = cv2.VideoCapture(video_name)
 
     #load pretrained googlenet
@@ -30,7 +32,7 @@ def get_googlenet_pool5(video_name,per_frame):
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ])
     features = []
-        
+    print(torch.cuda.is_available())
     for pic_num in range(0,int(capture_ori.get(cv2.CAP_PROP_FRAME_COUNT)),per_frame):
         capture_ori.set(cv2.CAP_PROP_POS_FRAMES,pic_num)
         ret, frame = capture_ori.read()
@@ -42,13 +44,20 @@ def get_googlenet_pool5(video_name,per_frame):
 
         # move the input and model to GPU for speed if available
         if torch.cuda.is_available():
+            if pic_num % 10000 == 0:
+                print(pic_num)
             input_batch = input_batch.to('cuda')
             model.to('cuda')
 
         with torch.no_grad():
             output = model(input_batch)
-        features.append(pool5['AdaptiveAvgPool2d'])    
+        features.append(pool5['AdaptiveAvgPool2d'].cpu().numpy().reshape(1024))   
+    end = time.time()
+    print(end-start)
     return features
-
-a = get_googlenet_pool5('20200422_T1_DRX.mp4',15)
-print(len(a))
+if __name__ == "__main__":
+    a = get_googlenet_pool5('highlight_360.mp4',15)
+    a = numpy.array(a)
+    print(a.shape)
+    b = cpd_auto.cpd_auto(a,200,desc_rate = 1,vmax=1)
+    print(b)
