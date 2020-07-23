@@ -54,10 +54,14 @@ def get_googlenet_pool5(video_name,per_frame):
         features.append(pool5['AdaptiveAvgPool2d'].cpu().numpy().reshape(1024))   
     end = time.time()
     print(end-start)
-    return features
+    return numpy.array(features)
+
+def get_cp(video_frames,max_cp):
+    kerMat = numpy.matmul(video_frames,video_frames.transpose())
+    cp_tuple = cpd_auto.cpd_auto(kerMat,max_cp,desc_rate = 1,vmax=1)
+    return cp_tuple
+
 if __name__ == "__main__":
     a = get_googlenet_pool5('highlight_360.mp4',15)
-    a = numpy.array(a)
-    print(a.shape)
-    b = cpd_auto.cpd_auto(a,200,desc_rate = 1,vmax=1)
-    print(b)
+    b = get_cp(a,2200)
+    print(b[0].shape)
