@@ -4,7 +4,7 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('-f', type=str, default="videos.txt", help="Video url list file name")
 parser.add_argument('-o', type=str, default="download", help="quality or download") 
-parser.add_argument('-q', type=str, default="480p", help="video download qualtiy")
+parser.add_argument('-q', type=str, default="360p", help="video download qualtiy")
 
 args = parser.parse_args()
 

@@ -109,7 +109,7 @@ def cutVideo(filename, inference_path, raw_path, result_path):
                 raw_path+filename+".mp4",
                 game_range['start'],
                 game_range['end'],
-                targetname=f"{result_path}{game_date}_{game_info[info_index]['team1']}_{game_info[info_index]['team2']}_{game_index}_full.mp4"
+                targetname=f"{result_path}{game_date}_{game_info[info_index]['team1'].upper()}_{game_info[info_index]['team2'].upper()}_{game_index}_full.mp4"
         )
         game_index += 1
 
