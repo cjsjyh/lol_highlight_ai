@@ -21,6 +21,7 @@ def findHighlightVideoPath(video_name, highlight_path):
         result = glob.glob(f"{highlight_path}{folder_name}{video_name}*")
         if (len(result) != 0):
             return f"{highlight_path}{folder_name}"
+    return ""
 
 #-----------------------
 # Get game series
@@ -69,19 +70,19 @@ def get_game_info(highlight_path, full_name):
     game_info.append(info)
   return game_info
 
-#print(get_game_info('../../../tj/2020_spring_highlight_video/','20200305_AF_T1_SB_GEN.mp4'))
-
 #---------------------------
 # Cut Video
 #---------------------------
 
 def cutVideo(filename, inference_path, raw_path, result_path):
+    print("Cut Video "+filename+" start")
     result_file = open(f"{inference_path}{filename}.txt","r")
     game_date = filename.split('_')[0]
     highlight_path = findHighlightVideoPath(game_date, '/home/lol/tj/')
-    print(highlight_path)
+    if(highlight_path == ""):
+        return
+
     game_info = get_game_info(highlight_path, filename + '.mp4')
-    print(game_info)
 
     # Make pairs
     cut_ranges = []
@@ -100,11 +101,9 @@ def cutVideo(filename, inference_path, raw_path, result_path):
     info_index = 0
     game_index = 1
     for game_range in cut_ranges:
-        print(game_range)
         if (game_info[info_index]['game_set'] < game_index):
             game_index = 1
             info_index += 1
-        print(f"{result_path}{game_date}_{game_info[info_index]['team1']}_{game_info[info_index]['team2']}_{game_index}_full.mp4")
         ffmpeg_extract_subclip(
                 raw_path+filename+".mp4",
                 game_range['start'],
@@ -112,24 +111,23 @@ def cutVideo(filename, inference_path, raw_path, result_path):
                 targetname=f"{result_path}{game_date}_{game_info[info_index]['team1'].upper()}_{game_info[info_index]['team2'].upper()}_{game_index}_full.mp4"
         )
         game_index += 1
-
-    #ffmpeg_extract_subclip("video1.mp4", start_time, end_time, targetname="test.mpt4")
-cutVideo(
-    '20200228_APK_DRX_T1_SB',
-    '/home/lol/lol_highlight_ai/preprocessing/ingame_classifier/inference_result/',
-    '/home/lol/lol_highlight_ai/preprocessing/downloader/full_raw/',
-    '/home/lol/lol_highlight_ai/preprocessing/ingame_classifier/full_video/'
-    )
+    print("Cut Video done")
+#cutVideo(
+#    '20200228_APK_DRX_T1_SB',
+#    '/home/lol/lol_highlight_ai/preprocessing/ingame_classifier/inference_result/',
+#    '/home/lol/lol_highlight_ai/preprocessing/downloader/full_raw/',
+#    '/home/lol/lol_highlight_ai/preprocessing/ingame_classifier/full_video/'
+#    )
 
 #------------------------------
 # remove unnecessary timestamp
 #------------------------------
 
 def isDiffLess(a, b, min):
-    print("[diff]"+str(b - a)+" [min]"+str(min*60))
     return b - a < min*60
 
 def postprocess_timestamp(filename):
+    print("Postprocessing "+filename+" start")
     file_in = open(filename + '_raw.txt', 'r')
     file_out = open(filename + '.txt', 'w+')
 
@@ -159,7 +157,7 @@ def postprocess_timestamp(filename):
                 continue
             # Check if game started too quickly
             if(last_end_sec != -1 or rolledBack):
-                if(isDiffLess(last_end_sec, int(line[2]), 2)):
+                if(isDiffLess(last_end_sec, int(line[2]), 5)):
                     skipEnd = True
                     continue
                 # Normal Case
@@ -182,7 +180,7 @@ def postprocess_timestamp(filename):
                 last_end_sec = int(line[2])
                 continue
             if(last_start_sec != -1):
-                if(isDiffLess(last_start_sec, int(line[2]), 10)):
+                if(isDiffLess(last_start_sec, int(line[2]), 13)):
                     # Move to previous pair
                     last_start_sec = last_2_start_sec
                     last_start_line = last_2_start_line
@@ -200,6 +198,7 @@ def postprocess_timestamp(filename):
     file_in.close()
     file_out.write(last_end_line)
     file_out.close()
+    print("Postprocessing end")
 #postprocess_timestamp('./inference_result/20200228_APK_DRX_T1_SB')
 
 

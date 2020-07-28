@@ -18,8 +18,6 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 torch.manual_seed(777)
 if device == 'cuda':
   torch.cuda.manual_seed_all(777)
-print(torch.cuda.memory_allocated(device))
-
 
 #------------------------
 # Create Model
@@ -62,6 +60,7 @@ class VGG(nn.Module):
             elif isinstance(m, nn.Linear):
                 nn.init.normal_(m.weight, 0, 0.01)
                 nn.init.constant_(m.bias, 0)
+
 def make_layers(cfg, batch_norm=False):
     layers = []
     in_channels = 3
@@ -104,7 +103,6 @@ import matplotlib.pyplot as plt
 from PIL import Image
 
 import cv2
-print(cv2.__version__)
 
 import math
 
@@ -123,12 +121,9 @@ def FindTransitions(path_in, video_name, path_out, start = -1, until=-1, frame=6
     result_file = open(path_out + f"/{video_name.replace('.mp4','')}_raw.txt", 'w+')
 
     # Initialize OpenCV
-    print("Processing: " + path_in + video_name)
     vidcap = cv2.VideoCapture(path_in + video_name)
-    print("Is Open: " + str(vidcap.isOpened()))
     success,image = vidcap.read()
     fps = vidcap.get(cv2.CAP_PROP_FPS)
-    print("FPS: "+str(fps))
 
     # Initialize PyTorch transform
     trans = transforms.Compose([
@@ -149,7 +144,6 @@ def FindTransitions(path_in, video_name, path_out, start = -1, until=-1, frame=6
 
         # Inference per 30 saved image
         if (save_count % 30 == 0 and save_count > last_check):
-            print(f"Checking Frame: {frame_number}")
             dataset = torchvision.datasets.ImageFolder(path_out, transform=trans)
             dataloader = DataLoader(dataset=dataset, batch_size=10, shuffle=False)
             inference_result = is_ingame(dataloader)
@@ -158,12 +152,12 @@ def FindTransitions(path_in, video_name, path_out, start = -1, until=-1, frame=6
                 in_seconds = math.floor(saved_frame[index]/fps)
                 _sec = in_seconds % 60
                 _min = math.floor(in_seconds / 60) % 60
-                _hr = math.floor(in_seconds / 60) / 60
+                _hr = math.floor(math.floor(in_seconds / 60) / 60)
                 # If frame is in game
                 if (isInGame == 1):
                     if (not curInGame):
                         if (curInGameCount == 2):
-                            print(f"Game started {_min}:{_sec}")
+                            print(f"Game started {_hr}:{_min}:{_sec}")
                             result_file.write(f"start {saved_frame[index]} {in_seconds} {_hr}:{_min}:{_sec}\n")
                             curInGameCount = 0
                             curInGame = True
@@ -174,8 +168,8 @@ def FindTransitions(path_in, video_name, path_out, start = -1, until=-1, frame=6
                 else:
                     if (curInGame):
                         if (curInGameCount == -2):
-                            print(f"Game Finished {_min}:{_sec}")
-                            result_file.write(f"finish:{saved_frame[index]} {in_seconds} {_hr}:{_min}:{_sec}\n")
+                            print(f"Game Finished {_hr}:{_min}:{_sec}")
+                            result_file.write(f"finish {saved_frame[index]} {in_seconds} {_hr}:{_min}:{_sec}\n")
                             curInGameCount = 0
                             curInGame = False
                         else:
@@ -195,17 +189,32 @@ def FindTransitions(path_in, video_name, path_out, start = -1, until=-1, frame=6
     vidcap.release()
     print(video_name + " Done!")
 
+import util
 
-# In[14]:
+if __name__ == "__main__":
+    full_raw_path = "/home/lol/lol_highlight_ai/preprocessing/downloader/full_raw/"
+    classifier_path = "/home/lol/lol_highlight_ai/preprocessing/ingame_classifier/"
+    full_raw_videos = util.get_filenames(full_raw_path)
+    for index, full_raw_video in enumerate(full_raw_videos):
+        if index == 1:
+            break
+        video_no_ext = full_raw_video.replace('.mp4','')
+        print(f"[Start {index+1}/{len(full_raw_videos)}] "+video_no_ext)
+        FindTransitions(
+            full_raw_path,
+            full_raw_video,
+            classifier_path + "inference_result"
+        )
+
+        util.postprocess_timestamp('./inference_result/' + video_no_ext)
+
+        util.cutVideo(
+            video_no_ext,
+            classifier_path + 'inference_result/',
+            full_raw_path,
+            classifier_path + 'full_video/'
+        )
+        print(f"[End {index+1}/{len(full_raw_videos)}] "+video_no_ext)
 
 
-FindTransitions("/home/lol/lol_highlight_ai/preprocessing/downloader/full_raw/","20200228_APK_DRX_T1_SB.mp4",
-"/home/lol/lol_highlight_ai/preprocessing/ingame_classifier/inference_result")
-
-
-# In[ ]:
-
-
-# _image = Image.open(root_path + pathOut + "/temp/frame%d.jpg" % saved_frame[index])
-# plt.imshow(_image)
 
