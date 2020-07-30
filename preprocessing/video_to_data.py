@@ -110,6 +110,7 @@ if __name__ == "__main__":
     print(picks)
     print(change_point_end.shape)
     print(change_point_end)
+    print("test for git~")
     #data_to_h5(filename='ex1.h5',video_name=vid_name,features = a,gtscore )
 #***********************************************************************************************************************************************
 #/key
