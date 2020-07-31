@@ -150,7 +150,7 @@ def FindTransitions(path_in, video_name, path_out, start = -1, until=-1, frame=6
             # Check frame inference result
             for (index,isInGame) in enumerate(inference_result.tolist()):
                 in_seconds = math.floor(saved_frame[index]/fps)
-                _sec = in_seconds % 60
+                _sec = in_seconds % 60 - 60
                 _min = math.floor(in_seconds / 60) % 60
                 _hr = math.floor(math.floor(in_seconds / 60) / 60)
                 # If frame is in game

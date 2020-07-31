@@ -124,81 +124,68 @@ def cutVideo(filename, inference_path, raw_path, result_path):
 #------------------------------
 
 def isDiffLess(a, b, min):
-    return b - a < min*60
+    return abs(int(b) - int(a)) < min*60
 
+MINIMUM_RUN_TIME = 8
+MINIMUM_INTERVAL_TIME = 5
 def postprocess_timestamp(filename):
     print("Postprocessing "+filename+" start")
     file_in = open(filename + '_raw.txt', 'r')
     file_out = open(filename + '.txt', 'w+')
 
-    last_end_sec = last_2_end_sec = -1
-    last_end_line = last_2_end_line = ''
-
-    last_start_sec = last_2_start_sec = -1
-    last_start_line = last_2_start_line = ''
-    skipEnd = False
-    skipWrite = False
-    rolledBack = False
+    last_s_raw = last_e_raw = '' # Full line (string)
+    last_s = last_e = None # Just seconds (int)
 
     while True:
-        line = file_in.readline()
-        if not line: break
+        # EOF | Line Format: start/finish [frame] [seconds] [hr:min:sec]
+        line_s_raw = file_in.readline()
+        line_e_raw = file_in.readline()
+        if(not line_s_raw or not line_e_raw): break
 
-        line_raw = line
-        line = line.strip('\n')
-        line = line.split(' ')
-        if(line[0] == 'start'):
-            # First start
-            if(last_start_sec == -1):
-                last_2_start_line = last_start_line
-                last_start_line = line_raw
-                last_2_start_sec = last_2_start_sec
-                last_start_sec = int(line[2])
+        # If out of format
+        line_s = line_s_raw.strip('\n').split(' ')
+        line_e = line_e_raw.strip('\n').split(' ')
+        if(line_s[0] != 'start' or line_e[0] != 'finish'): break
+
+        # First iteration
+        if(last_s_raw == '' and last_e_raw == ''):
+            # First section ended too quickly
+            if(isDiffLess(line_s[2], line_e[2], MINIMUM_RUN_TIME)):
                 continue
-            # Check if game started too quickly
-            if(last_end_sec != -1 or rolledBack):
-                if(isDiffLess(last_end_sec, int(line[2]), 5)):
-                    skipEnd = True
-                    continue
-                # Normal Case
-                else:
-                    last_2_start_line = last_start_line
-                    last_start_line = line_raw
-                    last_2_start_sec = last_start_sec
-                    last_start_sec = int(line[2])
-            # Write previous end
-            if(last_end_sec != -1 and not skipWrite):
-                file_out.write(last_end_line)
-            skipWrite = False
+            last_s_raw = line_s_raw
+            last_e_raw = line_e_raw
+            last_s = line_s[2]
+            last_e = line_e[2]
+            continue
+
+        print(line_s[2], line_e[2])
+        # Game ended too quickly: 13min
+        if(isDiffLess(line_s[2], line_e[2], MINIMUM_RUN_TIME)):
+            continue
+        # Game started too quickly: 5min
+        elif(isDiffLess(last_e, line_s[2], MINIMUM_INTERVAL_TIME)):
+            last_e_raw = line_e_raw
+            last_e = line_e[2]
+        # Normal Case
         else:
-            # Only Update
-            if(skipEnd):
-                skipEnd = False
-                last_2_end_line = last_end_line
-                last_end_line = line_raw
-                last_2_end_sec = last_end_sec
-                last_end_sec = int(line[2])
-                continue
-            if(last_start_sec != -1):
-                if(isDiffLess(last_start_sec, int(line[2]), 13)):
-                    # Move to previous pair
-                    last_start_sec = last_2_start_sec
-                    last_start_line = last_2_start_line
-                    last_end_sec = last_2_end_sec
-                    last_end_line = last_2_end_line
-                    skipWrite = True
-                    rolledBack = True
-                # Write previous start
-                else:
-                    file_out.write(last_start_line)
-                    last_2_end_line = last_end_line
-                    last_end_line = line_raw
-                    last_2_end_sec = last_end_sec
-                    last_end_sec = int(line[2])
+            file_out.write(last_s_raw)
+            file_out.write(last_e_raw)
+            last_s_raw = line_s_raw
+            last_e_raw = line_e_raw
+            last_s = line_s[2]
+            last_e = line_e[2]
+    print("---LAST---")
+    print(line_s_raw)
+    print(line_e_raw)
+    print(last_s_raw)
+    print(last_e_raw)
+    if(last_s_raw and last_e_raw):
+        file_out.write(last_s_raw)
+        file_out.write(last_e_raw)
     file_in.close()
-    file_out.write(last_end_line)
     file_out.close()
-    print("Postprocessing end")
-#postprocess_timestamp('./inference_result/20200228_APK_DRX_T1_SB')
+    print("Postprocessing done")
+
+postprocess_timestamp('./inference_result/20191026_GRF_IG_FPX_FNC')
 
 
