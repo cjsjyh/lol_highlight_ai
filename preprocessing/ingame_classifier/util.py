@@ -186,6 +186,6 @@ def postprocess_timestamp(filename):
     file_out.close()
     print("Postprocessing done")
 
-postprocess_timestamp('./inference_result/20191026_GRF_IG_FPX_FNC')
+#postprocess_timestamp('./inference_result/20191026_GRF_IG_FPX_FNC')
 
 
