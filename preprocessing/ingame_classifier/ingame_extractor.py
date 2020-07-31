@@ -149,15 +149,15 @@ def FindTransitions(path_in, video_name, path_out, start = -1, until=-1, frame=6
             inference_result = is_ingame(dataloader)
             # Check frame inference result
             for (index,isInGame) in enumerate(inference_result.tolist()):
-                in_seconds = math.floor(saved_frame[index]/fps)
-                _sec = in_seconds % 60 - 60
+                in_seconds = math.floor(saved_frame[index]/fps) - 60
+                _sec = in_seconds % 60
                 _min = math.floor(in_seconds / 60) % 60
                 _hr = math.floor(math.floor(in_seconds / 60) / 60)
                 # If frame is in game
                 if (isInGame == 1):
                     if (not curInGame):
                         if (curInGameCount == 2):
-                            print(f"Game started {_hr}:{_min}:{_sec}")
+                            #print(f"Game started {_hr}:{_min}:{_sec}")
                             result_file.write(f"start {saved_frame[index]} {in_seconds} {_hr}:{_min}:{_sec}\n")
                             curInGameCount = 0
                             curInGame = True
@@ -168,7 +168,7 @@ def FindTransitions(path_in, video_name, path_out, start = -1, until=-1, frame=6
                 else:
                     if (curInGame):
                         if (curInGameCount == -2):
-                            print(f"Game Finished {_hr}:{_min}:{_sec}")
+                            #print(f"Game Finished {_hr}:{_min}:{_sec}")
                             result_file.write(f"finish {saved_frame[index]} {in_seconds} {_hr}:{_min}:{_sec}\n")
                             curInGameCount = 0
                             curInGame = False
@@ -196,8 +196,6 @@ if __name__ == "__main__":
     classifier_path = "/home/lol/lol_highlight_ai/preprocessing/ingame_classifier/"
     full_raw_videos = util.get_filenames(full_raw_path)
     for index, full_raw_video in enumerate(full_raw_videos):
-        if index == 1:
-            break
         video_no_ext = full_raw_video.replace('.mp4','')
         print(f"[Start {index+1}/{len(full_raw_videos)}] "+video_no_ext)
         FindTransitions(

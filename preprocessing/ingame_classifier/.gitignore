@@ -3,3 +3,5 @@ result_model/
 inference_result/
 full_video/
 __pycache__/
+
+exceptions.txt

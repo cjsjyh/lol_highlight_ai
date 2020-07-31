@@ -98,6 +98,18 @@ def cutVideo(filename, inference_path, raw_path, result_path):
         game_range = { 'start': int(start_split[2]), 'end': int(end_split[2]) }
         cut_ranges.append(game_range)
 
+    # if total number of games doesn't match number of highlight videos
+    total_set = 0
+    for game in game_info:
+        total_set += game['game_set']
+    if(len(cut_ranges) != total_set):
+        print("Cut Video failed: game set doens't match")
+        exception_file = open("exceptions.txt","a")
+        exception_file.write(f"{filename}\n")
+        exception_file.close()
+        result_file.close()
+        return
+
     info_index = 0
     game_index = 1
     for game_range in cut_ranges:
@@ -112,6 +124,7 @@ def cutVideo(filename, inference_path, raw_path, result_path):
         )
         game_index += 1
     print("Cut Video done")
+    result_file.close()
 #cutVideo(
 #    '20200228_APK_DRX_T1_SB',
 #    '/home/lol/lol_highlight_ai/preprocessing/ingame_classifier/inference_result/',
