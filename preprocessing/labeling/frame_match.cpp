@@ -27,6 +27,8 @@ void tenary_vectorzie(bitset<BITSET_LENGTH> &result, const Mat frame, int num_pa
     uchar *pixel = frame.data;
     int partition_width = width / num_patch;
     int partition_height = height / num_patch;
+    threshold *= partition_width * partition_height;
+
     result.reset();
     // Dvide frame into num_patch*num_patch parts and store each sum of parts into vector array
     for (int i = 0; i < height; ++i)
@@ -63,7 +65,7 @@ int bit_sum(const bitset<BITSET_LENGTH> bits) {
 int main() {
     Mat h_frame, f_frame;
     VideoCapture game("/home/lol/20200701_T1_DWG_GEN_SB.mp4");
-    VideoCapture highlight("/home/lol/20200701_hl.mp4");
+    VideoCapture highlight("/home/lol/tj/2020_summer_highlight_video/20200701_T1_DWG_1_highlight.mp4");
     bitset<BITSET_LENGTH> h_bits, f_bits;
 
     if (!game.isOpened()) {
@@ -75,18 +77,18 @@ int main() {
         return 1;
     }
 
-    game.set(CAP_PROP_POS_FRAMES, 130250);
-    highlight.set(CAP_PROP_POS_FRAMES, 5995);
+    game.set(CAP_PROP_POS_FRAMES, 119500);
+    highlight.set(CAP_PROP_POS_FRAMES, 5110);
     double fps_game = game.get(CAP_PROP_FPS);
     double fps_highlight = highlight.get(CAP_PROP_FPS);
 
     highlight.read(h_frame);
-    int f_num = 130250;
+    int f_num = 119500;
     tenary_vectorzie(h_bits, h_frame);
     
     clock_t start_time = clock();
     int sim;
-    while (f_num < 148250) {
+    while (f_num < 137500) {
         game.read(f_frame);
         tenary_vectorzie(f_bits, f_frame);
  
