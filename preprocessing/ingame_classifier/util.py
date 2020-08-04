@@ -83,6 +83,13 @@ def cutVideo(filename, inference_path, raw_path, result_path):
         return
 
     game_info = get_game_info(highlight_path, filename + '.mp4')
+    if(not game_info or len(game_info) == 0):
+        print("Cut video failed: couldn't find highlight")
+        exception_file = open("exceptions.txt","a")
+        exception_file.write(f"{filename}\n")
+        exception_file.close()
+        result_file.close()
+        return
 
     # Make pairs
     cut_ranges = []
@@ -171,7 +178,6 @@ def postprocess_timestamp(filename):
             last_e = line_e[2]
             continue
 
-        print(line_s[2], line_e[2])
         # Game ended too quickly: 13min
         if(isDiffLess(line_s[2], line_e[2], MINIMUM_RUN_TIME)):
             continue
@@ -187,11 +193,6 @@ def postprocess_timestamp(filename):
             last_e_raw = line_e_raw
             last_s = line_s[2]
             last_e = line_e[2]
-    print("---LAST---")
-    print(line_s_raw)
-    print(line_e_raw)
-    print(last_s_raw)
-    print(last_e_raw)
     if(last_s_raw and last_e_raw):
         file_out.write(last_s_raw)
         file_out.write(last_e_raw)
