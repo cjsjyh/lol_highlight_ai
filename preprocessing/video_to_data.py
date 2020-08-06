@@ -10,6 +10,8 @@ import time
 from VASNet.cpd_auto import cpd_auto
 import numpy
 import h5py
+#import highlight_cut
+from tj.highlight_cut import match_check
 def get_pool5(name,pool5):
     def hook(model, input, output):
         pool5[name] = output.detach()
@@ -87,26 +89,67 @@ def data_to_h5(filename,video_name,features,gtscore=None,gtsummary=None,n_frame_
     f.create_dataset(video_name+'/video_name',data=video_name)
     f.close()
 
+def change_point_sift(video_path,start_frame,full_space,threshold):
+    capture = cv2.VideoCapture(video_path)
+    prev_frame = numpy.zeros([360, 640, 3], dtype = numpy.uint8)
+    num = start_frame
+    cp_list = []
+    frame_length = capture.get(cv2.CAP_PROP_FRAME_COUNT)
+    print(frame_length)
+    while num < frame_length:
+        #if num > 5000:
+        #    print(num)
+        # if(capture.get(cv2.CAP_PROP_POS_FRAMES) == capture.get(cv2.CAP_PROP_FRAME_COUNT)):
+        #     capture.open("/home/lol/game_360.mp4")
+        ret, frame = capture.read()
+        if num % full_space == 0:
+            sim,matches,kp1,kp2,img1,img2 = match_check(prev_frame, frame)
+            #print(f'{num//1800}:{num//30%60}', sim, num)
+            #res=cv2.drawMatchesKnn(img1,kp1,img2,kp2,matches,None,flags=2)
+            #cv2.imshow("res",res)
+            #cv2.waitKey(0)
+            if sim == -1:
+                pass
+            elif sim <= threshold:
+                cp_list.append(num)
+                #print(f'{num//1800}:{num//30%60}', sim, num)
+                #res=cv2.drawMatchesKnn(img1,kp1,img2,kp2,matches,None,flags=2)
+                #cv2.imshow("res",res)
+                #cv2.waitKey(0)
+                #cv2.destroyAllWindows()
+            prev_frame = frame
+        #if cv2.waitKey(1) > 0: break
+        num += 1
+    capture.release()
+#    cv2.destroyAllWindows()
+    return numpy.array(cp_list)
+
 if __name__ == "__main__":
-    vid_name = '/home/lol/highlight_360.mp4'
+    vid_name = '/home/lol/tj/20200628_AF_DRX_1_highlight.mp4'
     frame_space = 15
     full_space = 5
     threshold = 0.007
-    
+    sift_threshold = 10
     features,full_features = get_googlenet_pool5(vid_name,frame_space,full_space)
     cp = get_cp(full_features,int(full_features.shape[0]*full_space*threshold))
     change_points = cp[0]*full_space
     picks = numpy.array([frame_space*num for num in range(0,features.shape[0])])
-    n_frames = len(full_features)*full_space
-    n_steps = len(features)
+    # n_frames = len(full_features)*full_space
+    # n_steps = len(features)
     change_point_end = numpy.append(change_points[1:],len(full_features)*full_space)-1 
     change_points = numpy.vstack((change_points,change_point_end)).transpose()
-    n_frame_per_seg = change_points[:,1]-change_points[:,0]+1
-    data_to_h5("test.h5","high360",features=features,n_frame_per_seg=n_frame_per_seg, n_frames=n_frames,change_point=change_points,picks=picks,n_steps=n_steps)
-    with h5py.File('/home/lol/VASNet/test.h5','r') as dataset:
-        print(dataset.keys())
-        data = dataset['high360']
-        print(data.keys())
+    # n_frame_per_seg = change_points[:,1]-change_points[:,0]+1
+    a = time.time()
+    cp_sift = change_point_sift(vid_name,0,full_space,sift_threshold)
+    print(cp_sift)
+    b = time.time()
+    print(change_points.transpose()[0])
+    print(b-a)
+    # data_to_h5("test.h5","high360",features=features,n_frame_per_seg=n_frame_per_seg, n_frames=n_frames,change_point=change_points,picks=picks,n_steps=n_steps)
+    # with h5py.File('/home/lol/VASNet/test.h5','r') as dataset:
+    #     print(dataset.keys())
+    #     data = dataset['high360']
+    #     print(data.keys())
 
     
     #data_to_h5(filename='ex1.h5',video_name=vid_name,features = a,gtscore )
