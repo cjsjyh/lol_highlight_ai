@@ -37,8 +37,12 @@ def match_check(img1, img2):
         print("des2 is None")
         return -1,None,None,None,None,None
     #breakpoint()
-    matches = flann.knnMatch(des1,des2,k=2)
+    if des2.shape[0] == 1:
+        return -1,None,None,None,None,None
+    else:
+        matches = flann.knnMatch(des1,des2,k=2)
     # ratio test as per Lowe's paper
+    #print(matches)
     num = 0
     good = []
     for i,(m,n) in enumerate(matches):

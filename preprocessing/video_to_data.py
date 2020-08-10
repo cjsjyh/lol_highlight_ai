@@ -18,8 +18,8 @@ parser = argparse.ArgumentParser("create h5 file from lol videos")
 parser.add_argument('-d', '--dataset', type=str, required=True, help="path to h5 dataset (required)")
 parser.add_argument('-v', '--video', type=str, default='datasets', help="path to video")
 parser.add_argument('-i','--index', type=int, default=0, help="index of process to run (max 5)")
-# parser.add_argument('--num-splits', type=int, default=5, help="how many splits to generate (default: 5)")
-# parser.add_argument('--train-percent', type=float, default=0.8, help="percentage of training data (default: 0.8)")
+#parser.add_argument('--num-splits', type=int, default=5, help="how many splits to generate (default: 5)")
+#parser.add_argument('--train-percent', type=float, default=0.8, help="percentage of training data (default: 0.8)")
 
 args = parser.parse_args()
 
@@ -49,7 +49,6 @@ def get_googlenet_pool5(video_name,per_frame,full_space):
     ])
     features = []
     full_features = []
-    print(capture_ori.get(cv2.CAP_PROP_FRAME_COUNT))
     video_length = capture_ori.get(cv2.CAP_PROP_FRAME_COUNT)
     print(video_length)
     for pic_num in range(0,int(video_length)):
@@ -95,7 +94,7 @@ def get_cp(video_frames,max_cp):
 def data_to_h5(filename,video_name,features,gtscore=None,gtsummary=None,n_frame_per_seg=None,n_frames=None,change_point=None,picks=None,n_steps=None,user_summary=None,video_name_original=None,cp_sift=None,n_frame_per_seg_sift=None):
     print("Saving Data Into h5 Format ... ")
     h5_file_name = filename
-    f = h5py.File(h5_file_name,'r+')
+    f = h5py.File(h5_file_name,'a')
     f.create_dataset(video_name+'/features',data = features)
     #f.create_dataset(video_name+'/gtscore',data = gtscore)
     f.create_dataset(video_name+'/n_frame_per_seg',data=n_frame_per_seg)
@@ -118,8 +117,12 @@ def change_point_sift(video_path,start_frame,full_space,threshold):
     cp_list = []
     frame_length = capture.get(cv2.CAP_PROP_FRAME_COUNT)
     start = time.time()
+    print(frame_length)
     while num < frame_length:
         ret, frame = capture.read()
+        if num > 64000:
+            print(num)
+            print(frame)
         if frame is None:
             if num + 300 < frame_length:
                 continue
@@ -164,9 +167,11 @@ def one_video_to_h5(h5,path,games,frame_space=15,full_space=5,threshold=0.007,si
             cp_sift = numpy.vstack((cp_sift,cp_sift_end)).transpose()    
             n_frame_per_seg_sift = cp_sift[:,1]-cp_sift[:,0]+1
 
-            with h5py.File(h5,'r+') as dataset:
+            with h5py.File(h5,'a') as dataset:
                 if game not in dataset.keys():
                     data_to_h5(h5,game,features=features,n_frame_per_seg=n_frame_per_seg, n_frames=n_frames,change_point=change_points,picks=picks,n_steps=n_steps,cp_sift=cp_sift,n_frame_per_seg_sift=n_frame_per_seg_sift)
+                else:
+                    print(f"{game} is already in h5!")
     end_making_video = time.time()
     print(f'total {end_making_video-start_making_video} seconds has taken')
     
@@ -178,6 +183,8 @@ if __name__ == "__main__":
     game_count = 0
     path = args.video
     h5_path = '/home/lol/test.h5'
+    #vid_name="lol_highlight_ai/preprocessing/ingame_classifier/full_video/20200219_DRX_T1_2_full.mp4"
+    #sift = change_point_sift(vid_name,0,5,10)
     games = [i for i in sorted(os.listdir(args.video))]
     game_total = len(games)
     game_per_seg = int(game_total/6)
@@ -185,6 +192,12 @@ if __name__ == "__main__":
         games = games[args.index*game_per_seg:]
     else:
         games = games[args.index*game_per_seg:(args.index+1)*game_per_seg]
+    #with h5py.File('b.h5','r') as dataset:
+    #    print(dataset.keys())
+    #    print(len(dataset.keys()))
+    #    for key in dataset.keys():
+    #        print(dataset[key].keys())
+
     one_video_to_h5(args.dataset,path,games,frame_space,full_space,threshold,sift_threshold)
 
     
