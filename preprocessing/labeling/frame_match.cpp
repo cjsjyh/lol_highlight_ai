@@ -8,14 +8,22 @@
 #include <utility>
 #include <algorithm>
 #include <queue>
+#include <map>
+#include <thread>
+#include <stdexcept>
+#include <mutex>
 
 using namespace std;
 using namespace cv;
-/*
-!!! It needs to chagne bitest template value to (num_patch * num_patch)C2 * 2, when you want to change num_patch !!!
-*/
-#define BITSET_LENGTH 600
+// !!! It needs to chagne bitest template value to (num_patch * num_patch)C2 * 2, when you want to change num_patch !!!
+#define BITSET_LENGTH 600 
 #define THRESHOLD_VALUE 30
+// first value is zero when not finding same frame between full game and highlight yet. If not, It it value of number of full frame.
+// second value is number of highlight frame. 
+pair<int, int> thread_framematch_result;
+string highligh_name, fullgame_name;
+mutex mutex_framereader, mutex_frame; // mutex for thread_normal_find thread.
+int framereadcount = 0; // value for mutex.
 /*
 Function description
 This function divides each frames into num_patch X num_patch partition.
@@ -24,77 +32,28 @@ After that compute the ternary digit for every possible pair of patches to obtai
 Function store tenary digit in each two bit in int type variable. if digit exceed integer scale store digits in another integer.
 All integer are wrapped in python list.
 */
-void tenary_vectorzie(bitset<BITSET_LENGTH> &result, const Mat frame, int num_patch = 5, int threshold = 20) {
-    vector<int> ternary(num_patch*num_patch, 0);
-    int width = frame.size().width;
-    int height = frame.size().height;
-    uchar *pixel = frame.data;
-    int partition_width = width / num_patch;
-    int partition_height = height / num_patch;
-    threshold *= partition_width * partition_height;
-
-    result.reset();
-    // Dvide frame into num_patch*num_patch parts and store each sum of parts into vector array
-    for (int i = 0; i < height; ++i)
-        for (int j = 0; j < width; ++j) {
-            ternary[num_patch*(i / partition_height) + j / partition_width ] += pixel[i*width*3 + j*3] + pixel[i*width*3 + j*3 + 1] + pixel[i*width*3 + j*3 + 2];
-        }
-
-    // Compare all pairs of list which stores sum of divided frame and store result into bitset.
-    int num = 0;
-    for (int i = 0; i < num_patch*num_patch; ++i)
-        for (int j = i+1; j < num_patch*num_patch; ++j) {
-            if (ternary[i] > ternary[j] + threshold)
-                result[num] = result[num+1] = 1;
-            else if (ternary[i] >= ternary[j] - threshold)
-                result[num+1] = 1;
-            num += 2;
-        }
-}
+void tenary_vectorzie(bitset<BITSET_LENGTH> &result, const Mat frame, int num_patch = 5, int threshold = 20);
 /*
 Argument have to be list type.
 Function computes sum of each 2 digits in integer array.
 In other words, function divieds all integers in list into 2 digits, sum all of them.
 */
-int bit_sum(const bitset<BITSET_LENGTH> bits) {
-    int result = 0;
-
-    for (int i = 0; i < bits.size(); i += 2) {
-        result += bits[i] * 2 + bits[i+1];
-    }
-
-    return result;
-}
-
+int bit_sum(const bitset<BITSET_LENGTH> bits);
 bool sim_comp(pair<int, int> a, pair<int, int> b) {return a.second < b.second;}
-
-int frame_search(const deque<pair<int, Mat>> &frames, int pos) {
-    if (frames.empty() || frames[0].first > pos || frames.back().first < pos) {
-        return -1;
-    }
-    
-    int left = 0;
-    int right = (int)frames.size()-1;
-    int mid;
-
-    while (left <= right) {
-        mid = (right + left) / 2;
-        if (frames[mid].first < pos)
-            left = mid + 1;
-        else if (pos < frames[mid].first)
-            right = mid -1;
-        else
-            return mid;
-    }
-
-    return -1;
-}
+int frame_search(const deque<pair<int, Mat>> &frames, int pos);
+/*
+It is for thread function.
+It find same frame between full game and highlight.
+If fail to find same frame for 2000 frames, It creates same thread with itself.
+If one of threads finds same frame, all thread is destroyed. and threads which is created eariler find same frame to found frame num.
+*/
+void thread_normal_find (map<int, Mat> &frame_map, int pos_game, int pos_highlight);
 
 int main() {
     enum FIND_STATE {NORMAL_FIND, FAST_FIND, SLOW_FIND};
     Mat h_frame, f_frame, copy_frame, temp_frame;
-    VideoCapture game("f.mp4");
-    VideoCapture highlight("h.mp4");
+    VideoCapture game(fullgame_name);
+    VideoCapture highlight(highligh_name);
     bitset<BITSET_LENGTH> h_bits, f_bits;
 
     if (!game.isOpened()) {
@@ -120,18 +79,20 @@ int main() {
     int last_highlight = highlight.get(CAP_PROP_FRAME_COUNT);
     int last_game = game.get(CAP_PROP_FRAME_COUNT);
     clock_t start_time = clock();
-    highlight.set(CAP_PROP_POS_FRAMES, 900);
-    game.set(CAP_PROP_POS_FRAMES, 16000);
-    int pos_highlight = 900, pos_game = 16000, matched_pos_game;
+    highlight.set(CAP_PROP_POS_FRAMES, 1100);
+    game.set(CAP_PROP_POS_FRAMES, 0);
+    int pos_highlight = 1100, pos_game = 0, matched_pos_game;
     double fps_game = game.get(CAP_PROP_FPS);
     double fps_highlight = highlight.get(CAP_PROP_FPS);
     int sim;
     ofstream file("output.txt");
     int state = NORMAL_FIND;
-    vector<Mat> storedMat;
     vector<pair<int, int>> sims; // left->idx, right->simillarity
     deque<pair<int, Mat>> frames;
     int idx;
+    int scene_count = 0;
+
+    file << "f.mp4" << '\n';
 
     highlight.read(h_frame);
     while (pos_highlight < last_highlight) {
@@ -162,7 +123,8 @@ int main() {
                 else if (!sims.empty() && sim >= 40) {
                     sort(sims.begin(), sims.end(), sim_comp);
                     cout << pos_highlight << " / " << sims[0].first << "=>" << sims[0].second << " NORMAL STATE" << '\n';
-                    file << pos_highlight << " / " << sims[0].first << '\n';
+                    // file << "start " << pos_highlight << " / " << sims[0].first << " => " << sims[0].second << '\n';
+                    file << sims[0].first;
                     state = FAST_FIND;
                     pos_game = sims[0].first+1;
                     while (!frames.empty() && frames[0].first < pos_game)
@@ -206,7 +168,7 @@ int main() {
                 sort(sims.begin(), sims.end(), sim_comp);
                 if (sims[0].second > THRESHOLD_VALUE) { //fail to find similar frame in next second frame of previous one.
                     if (sims[0].second >= 100) { // Case where move to next highlight frame scene.
-                        highlight.set(CAP_PROP_POS_FRAMES, pos_highlight - (int)fps_highlight);
+                        highlight.set(CAP_PROP_POS_FRAMES, highlight.get(CAP_PROP_POS_FRAMES) - (int)fps_highlight+1);
                         pos_highlight -= ((int)fps_highlight-1);
                         pos_game -= ((int)fps_game + 5);
                         idx = frame_search(frames, pos_game);
@@ -230,14 +192,16 @@ int main() {
                             sim = bit_sum(h_bits^f_bits);
                             cout << "next highlight " << pos_highlight << " / " << pos_game << " => " << sim << '\n';
                             pos_highlight++; pos_game++;
-                        } while (sim <= THRESHOLD_VALUE);
+                        } while (sim <= (int)(THRESHOLD_VALUE * 1.5));
                         state = NORMAL_FIND;
-                        pos_game = frames[0].first;
                         cout << pos_highlight << " / " << pos_game << " move to next highlight frame scene\n";
-                        for (int i = 0; i < 20; ++i) {
+                        // file << "end " << pos_highlight << " / " << pos_game << '\n';
+                        file << " " << pos_game << '\n';
+                        for (int i = 0; i < 25; ++i) {
                             highlight.read(h_frame);
                             pos_highlight++;
                         }
+                        pos_game = frames[0].first;
                     }
                     else { // Case where just fail to find similar frame in same scene.
                         pos_game -= 5;
@@ -246,7 +210,7 @@ int main() {
                 }
                 else { // find similar frame in next second frame of previous one.
                     cout << pos_highlight << " : " << highlight.get(CAP_PROP_POS_FRAMES) << " / " << sims[0].first << "=>" << sims[0].second << " FAST STATE" <<'\n';
-                    file << pos_highlight << " / " << sims[0].first << '\n';
+                    // file << pos_highlight << " / " << sims[0].first << '\n';
                     pos_game = sims[0].first+1;
                     while (!frames.empty() && frames[0].first < pos_game)
                         frames.pop_front();
@@ -272,4 +236,146 @@ int main() {
     file.close();
 
     return 0;
+}
+
+/*
+Function description
+This function divides each frames into num_patch X num_patch partition.
+Each parition get sum of pixels they have.
+After that compute the ternary digit for every possible pair of patches to obtain the frame descriptor, where N = {(1, 2), (1, 3), ...}
+Function store tenary digit in each two bit in int type variable. if digit exceed integer scale store digits in another integer.
+All integer are wrapped in python list.
+*/
+void tenary_vectorzie(bitset<BITSET_LENGTH> &result, const Mat frame, int num_patch, int threshold) {
+    vector<int> ternary(num_patch*num_patch, 0);
+    int width = frame.size().width;
+    int height = frame.size().height;
+    uchar *pixel = frame.data;
+    int partition_width = width / num_patch;
+    int partition_height = height / num_patch;
+    threshold *= partition_width * partition_height;
+
+    result.reset();
+    // Dvide frame into num_patch*num_patch parts and store each sum of parts into vector array
+    for (int i = 0; i < height; ++i)
+        for (int j = 0; j < width; ++j) {
+            ternary[num_patch*(i / partition_height) + j / partition_width ] += pixel[i*width*3 + j*3] + pixel[i*width*3 + j*3 + 1] + pixel[i*width*3 + j*3 + 2];
+        }
+
+    // Compare all pairs of list which stores sum of divided frame and store result into bitset.
+    int num = 0;
+    for (int i = 0; i < num_patch*num_patch; ++i)
+        for (int j = i+1; j < num_patch*num_patch; ++j) {
+            if (ternary[i] > ternary[j] + threshold)
+                result[num] = result[num+1] = 1;
+            else if (ternary[i] >= ternary[j] - threshold)
+                result[num+1] = 1;
+            num += 2;
+        }
+}
+/*
+Argument have to be list type.
+Function computes sum of each 2 digits in integer array and return sum.
+In other words, function divieds all integers in list into 2 digits, sum all of them.
+*/
+int bit_sum(const bitset<BITSET_LENGTH> bits) {
+    int result = 0;
+
+    for (int i = 0; i < bits.size(); i += 2) {
+        result += bits[i] * 2 + bits[i+1];
+    }
+
+    return result;
+}
+
+int frame_search(const deque<pair<int, Mat>> &frames, int pos) {
+    if (frames.empty() || frames[0].first > pos || frames.back().first < pos) {
+        return -1;
+    }
+    
+    int left = 0;
+    int right = (int)frames.size()-1;
+    int mid;
+
+    while (left <= right) {
+        mid = (right + left) / 2;
+        if (frames[mid].first < pos)
+            left = mid + 1;
+        else if (pos < frames[mid].first)
+            right = mid -1;
+        else
+            return mid;
+    }
+
+    return -1;
+}
+/*
+It is for thread function.
+It find same frame between full game and highlight.
+If fail to find same frame for 2000 frames, It creates same thread with itself.
+If one of threads finds same frame, all thread is destroyed. and threads which is created eariler find same frame to found frame num.
+function returns true if finished correctly, otherwise returns false.
+*/
+void thread_normal_find (map<int, Mat> &frame_map, int pos_game, int pos_highlight) {
+    VideoCapture game(fullgame_name);
+    VideoCapture highlight(highligh_name);
+    bitset<BITSET_LENGTH> h_bits, f_bits;
+    int pos_game_origin = pos_game;
+    Mat h_frame, f_frame, copy_frame, temp_frame;
+    int last_game = game.get(CAP_PROP_FRAME_COUNT);
+    int last_highlight = highlight.get(CAP_PROP_FRAME_COUNT);
+    double fps_highlight = highlight.get(CAP_PROP_FPS);
+    highlight.set(CAP_PROP_POS_FRAMES, pos_highlight);
+    game.set(CAP_PROP_POS_FRAMES, pos_game);
+    int sim;
+    vector<pair<int, int>> sims; // left->idx, right->simillarity
+
+    highlight.read(h_frame);
+    tenary_vectorzie(h_bits, h_frame);
+    while (thread_framematch_result.first == 0 && pos_game < last_game) {
+        try {
+            mutex_framereader.lock();
+            framereadcount++;
+            if (framereadcount == 1) mutex_frame.lock();
+            mutex_framereader.unlock();
+            f_frame = frame_map.at(pos_game);
+            mutex_framereader.lock();
+            framereadcount--;
+            if (framereadcount == 0) mutex_frame.unlock();
+            mutex_framereader.unlock();
+        } catch(const out_of_range& oor) {
+            if (pos_game == game.get(CAP_PROP_POS_FRAMES)) {
+
+            }
+            game.read(f_frame);
+            f_frame.copyTo(copy_frame);
+            temp_frame = copy_frame.clone();
+            mutex_frame.lock();
+            frame_map.insert({pos_game, temp_frame});
+            mutex_frame.unlock();
+        }
+
+        if (pos_game == pos_game_origin + 2000 && last_highlight > pos_highlight + (int)fps_highlight) {
+            thread t1(thread_normal_find, ref(frame_map), pos_game_origin, pos_highlight + (int)fps_highlight);
+            t1.join();
+        }
+        tenary_vectorzie(f_bits, f_frame);
+        sim = bit_sum(h_bits^f_bits);
+        if (sim < THRESHOLD_VALUE) {
+            sims.push_back(make_pair(pos_game, sim));
+        }
+        else if (!sims.empty() && sim >= 40) {
+            sort(sims.begin(), sims.end(), sim_comp);
+            mutex_framereader.lock();
+            if (thread_framematch_result.second > pos_highlight)
+                thread_framematch_result = {sims[0].first, pos_highlight};
+            mutex_framereader.unlock();
+            break;
+        }
+        pos_game++;
+    }
+
+    if (thread_framematch_result.second > pos_highlight) {
+        1;
+    }
 }
