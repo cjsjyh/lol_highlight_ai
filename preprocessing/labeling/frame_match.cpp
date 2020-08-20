@@ -21,9 +21,10 @@ using namespace cv;
 // first value is zero when not finding same frame between full game and highlight yet. If not, It it value of number of full frame.
 // second value is number of highlight frame. 
 pair<int, int> thread_framematch_result;
-string highligh_name, fullgame_name;
+string highligh_name("h6.mp4"), fullgame_name("f6.mp4");
 mutex mutex_framereader, mutex_frame; // mutex for thread_normal_find thread.
 int framereadcount = 0; // value for mutex.
+map<int, Mat> frame_map; // save frames for thread
 /*
 Function description
 This function divides each frames into num_patch X num_patch partition.
@@ -47,7 +48,7 @@ It find same frame between full game and highlight.
 If fail to find same frame for 2000 frames, It creates same thread with itself.
 If one of threads finds same frame, all thread is destroyed. and threads which is created eariler find same frame to found frame num.
 */
-void thread_normal_find (map<int, Mat> &frame_map, int pos_game, int pos_highlight);
+void thread_normal_find (int pos_game, int pos_highlight, int thread_count);
 
 int main() {
     enum FIND_STATE {NORMAL_FIND, FAST_FIND, SLOW_FIND};
@@ -65,23 +66,22 @@ int main() {
         return 1;
     }
     
-    // highlight.set(CAP_PROP_POS_FRAMES, 5570);
-    // game.set(CAP_PROP_POS_FRAMES, 42014);
+    // highlight.set(CAP_PROP_POS_FRAMES, 531);
+    // game.set(CAP_PROP_POS_FRAMES, 4220);
     // highlight.read(h_frame);
     // tenary_vectorzie(h_bits, h_frame);
     // game.read(f_frame);
     // tenary_vectorzie(f_bits, f_frame);
     // cout << highlight.get(CAP_PROP_POS_FRAMES) << " : " << game.get(CAP_PROP_POS_FRAMES) << " => " << bit_sum(h_bits^f_bits) << '\n';
-    // cout << h_bits << '\n';
-    // cout << f_bits << '\n';
+    // cout << game.get(CAP_PROP_FRAME_COUNT) << '\n';
     // return 0;
 
     int last_highlight = highlight.get(CAP_PROP_FRAME_COUNT);
     int last_game = game.get(CAP_PROP_FRAME_COUNT);
     clock_t start_time = clock();
-    highlight.set(CAP_PROP_POS_FRAMES, 1100);
+    highlight.set(CAP_PROP_POS_FRAMES, 300);
     game.set(CAP_PROP_POS_FRAMES, 0);
-    int pos_highlight = 1100, pos_game = 0, matched_pos_game;
+    int pos_highlight = 300, pos_game = 0, matched_pos_game;
     double fps_game = game.get(CAP_PROP_FPS);
     double fps_highlight = highlight.get(CAP_PROP_FPS);
     int sim;
@@ -90,9 +90,9 @@ int main() {
     vector<pair<int, int>> sims; // left->idx, right->simillarity
     deque<pair<int, Mat>> frames;
     int idx;
-    int scene_count = 0;
+    vector<pair<int, int>> match_result;
 
-    file << "f.mp4" << '\n';
+    file << "f4.mp4" << '\n';
 
     highlight.read(h_frame);
     while (pos_highlight < last_highlight) {
@@ -103,36 +103,22 @@ int main() {
                 cout << "game postion : " << pos_game << '\n';
             }
             if (state == NORMAL_FIND) {
-                idx = frame_search(frames, pos_game);
-                if (idx != -1 && idx != frames.size()) {
-                    cout << "NORMAL FIND start : " << pos_game << '/' << idx << '\n';
-                    f_frame = frames[idx].second;
-                }
-                else {
-                    // cout << "NORMAL FIND : There are no frame in deq. First idx of deq : " << frames[0].first << '\n';
-                    game.read(f_frame);
-                    f_frame.copyTo(copy_frame);
-                    temp_frame = copy_frame.clone();
-                    frames.push_back(make_pair(pos_game, temp_frame));
-                }
-                tenary_vectorzie(f_bits, f_frame);
-                sim = bit_sum(h_bits^f_bits);
-                if (sim < THRESHOLD_VALUE) {
-                    sims.push_back(make_pair(pos_game, sim));
-                }
-                else if (!sims.empty() && sim >= 40) {
-                    sort(sims.begin(), sims.end(), sim_comp);
-                    cout << pos_highlight << " / " << sims[0].first << "=>" << sims[0].second << " NORMAL STATE" << '\n';
-                    // file << "start " << pos_highlight << " / " << sims[0].first << " => " << sims[0].second << '\n';
-                    file << sims[0].first;
-                    state = FAST_FIND;
-                    pos_game = sims[0].first+1;
-                    while (!frames.empty() && frames[0].first < pos_game)
-                        frames.pop_front();
-                    sims.clear();
+                thread_framematch_result = {0, last_highlight+1};
+                thread_normal_find(pos_game, pos_highlight, 0);
+                frame_map.clear();
+                mutex_frame.unlock(); mutex_framereader.unlock();
+                pos_highlight = thread_framematch_result.second;
+                pos_game = thread_framematch_result.first;
+                if (pos_game == 0)
                     break;
-                }
-                pos_game++;
+                cout << pos_highlight << " / " << pos_game << " NORMAL STATE" << '\n';
+                file << "start " << pos_highlight << " / " << pos_game;
+                match_result.push_back({pos_game, 0});
+                state = FAST_FIND;
+                game.set(CAP_PROP_POS_FRAMES, pos_game+1);
+                highlight.set(CAP_PROP_POS_FRAMES, pos_highlight+1);
+                sims.clear();
+                break;
             }
             else if (state == FAST_FIND) { // find similar frame per one second
                 if (frames.empty())
@@ -197,6 +183,7 @@ int main() {
                         cout << pos_highlight << " / " << pos_game << " move to next highlight frame scene\n";
                         // file << "end " << pos_highlight << " / " << pos_game << '\n';
                         file << " " << pos_game << '\n';
+                        match_result.back().second = pos_game;
                         for (int i = 0; i < 25; ++i) {
                             highlight.read(h_frame);
                             pos_highlight++;
@@ -232,6 +219,9 @@ int main() {
         }
     }
     int finish_time = int(clock() - start_time);
+    file << match_result.size() << '\n';
+    for (int i = 0; i < match_result.size(); ++i)
+        file << match_result[i].first << ' ' << match_result[i].second << '\n';
     printf("%ld.%ldsec\n", finish_time / CLOCKS_PER_SEC, finish_time % CLOCKS_PER_SEC);
     file.close();
 
@@ -316,7 +306,7 @@ If fail to find same frame for 2000 frames, It creates same thread with itself.
 If one of threads finds same frame, all thread is destroyed. and threads which is created eariler find same frame to found frame num.
 function returns true if finished correctly, otherwise returns false.
 */
-void thread_normal_find (map<int, Mat> &frame_map, int pos_game, int pos_highlight) {
+void thread_normal_find (int pos_game, int pos_highlight, int thread_count) {
     VideoCapture game(fullgame_name);
     VideoCapture highlight(highligh_name);
     bitset<BITSET_LENGTH> h_bits, f_bits;
@@ -329,6 +319,10 @@ void thread_normal_find (map<int, Mat> &frame_map, int pos_game, int pos_highlig
     game.set(CAP_PROP_POS_FRAMES, pos_game);
     int sim;
     vector<pair<int, int>> sims; // left->idx, right->simillarity
+    thread t1;
+    int temp;
+
+    cout << "thread start : " << pos_highlight << " / " << pos_game << '\n';
 
     highlight.read(h_frame);
     tenary_vectorzie(h_bits, h_frame);
@@ -344,20 +338,38 @@ void thread_normal_find (map<int, Mat> &frame_map, int pos_game, int pos_highlig
             if (framereadcount == 0) mutex_frame.unlock();
             mutex_framereader.unlock();
         } catch(const out_of_range& oor) {
-            if (pos_game == game.get(CAP_PROP_POS_FRAMES)) {
-
+            mutex_framereader.lock();
+            framereadcount--;
+            if (framereadcount == 0) mutex_frame.unlock();
+            mutex_framereader.unlock();
+            if (pos_game+1 != game.get(CAP_PROP_POS_FRAMES)) {
+                temp = -1;
+                while (pos_game > game.get(CAP_PROP_POS_FRAMES)) {
+                    if (temp == game.get(CAP_PROP_POS_FRAMES))
+                        break;
+                    if (game.read(f_frame) == false) {
+                        pos_game = last_game;
+                        break;
+                    }
+                    temp = game.get(CAP_PROP_POS_FRAMES);
+                }
             }
-            game.read(f_frame);
+            if (game.read(f_frame) == false) {
+                pos_game = last_game;
+                break;
+            }
             f_frame.copyTo(copy_frame);
             temp_frame = copy_frame.clone();
             mutex_frame.lock();
             frame_map.insert({pos_game, temp_frame});
             mutex_frame.unlock();
         }
+        if (pos_game % 1000 == 0) {
+            cout << "thread " << pos_highlight << " / " << pos_game << '\n';
+        }
 
-        if (pos_game == pos_game_origin + 2000 && last_highlight > pos_highlight + (int)fps_highlight) {
-            thread t1(thread_normal_find, ref(frame_map), pos_game_origin, pos_highlight + (int)fps_highlight);
-            t1.join();
+        if (pos_game == pos_game_origin + 3000 && last_highlight > pos_highlight + (int)fps_highlight && thread_count < 15) {
+            t1 = thread(thread_normal_find, pos_game_origin, pos_highlight + (int)fps_highlight, thread_count+1);
         }
         tenary_vectorzie(f_bits, f_frame);
         sim = bit_sum(h_bits^f_bits);
@@ -369,13 +381,52 @@ void thread_normal_find (map<int, Mat> &frame_map, int pos_game, int pos_highlig
             mutex_framereader.lock();
             if (thread_framematch_result.second > pos_highlight)
                 thread_framematch_result = {sims[0].first, pos_highlight};
+            cout << "oh i find it " << thread_framematch_result.first << " / " << thread_framematch_result.second << '\n';
             mutex_framereader.unlock();
             break;
         }
         pos_game++;
     }
-
     if (thread_framematch_result.second > pos_highlight) {
-        1;
+        while (pos_game < thread_framematch_result.first) {
+            try {
+                mutex_framereader.lock();
+                framereadcount++;
+                if (framereadcount == 1) mutex_frame.lock();
+                mutex_framereader.unlock();
+                f_frame = frame_map.at(pos_game);
+                mutex_framereader.lock();
+                framereadcount--;
+                if (framereadcount == 0) mutex_frame.unlock();
+                mutex_framereader.unlock();
+            } catch(const out_of_range& oor) {
+                if (pos_game+1 != game.get(CAP_PROP_POS_FRAMES)) {
+                    while (pos_game > game.get(CAP_PROP_POS_FRAMES))
+                        game.read(f_frame);
+                }
+                game.read(f_frame);
+                f_frame.copyTo(copy_frame);
+                temp_frame = copy_frame.clone();
+                mutex_frame.lock();
+                frame_map.insert({pos_game, temp_frame});
+                mutex_frame.unlock();
+            }
+            tenary_vectorzie(f_bits, f_frame);
+            sim = bit_sum(h_bits^f_bits);
+            if (sim < THRESHOLD_VALUE) {
+                sims.push_back(make_pair(pos_game, sim));
+            }
+            else if (!sims.empty() && sim >= 40) {
+                sort(sims.begin(), sims.end(), sim_comp);
+                mutex_framereader.lock();
+                if (thread_framematch_result.second > pos_highlight)
+                    thread_framematch_result = {sims[0].first, pos_highlight};
+                mutex_framereader.unlock();
+                break;
+            }
+            pos_game++;
+        }
     }
+    if (pos_game >= pos_game_origin + 3000 && thread_count != 15)
+        t1.join();
 }
