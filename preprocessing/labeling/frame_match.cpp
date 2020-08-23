@@ -25,7 +25,9 @@ enum FIND_STATE {NORMAL_FIND, FAST_FIND, SLOW_FIND};
 // second value is number of highlight frame. 
 pair<int, int> thread_framematch_result;
 mutex mutex_framereader, mutex_frame; // mutex for thread_normal_find thread.
+mutex mutex_resultreader, mutex_result; // mutex for thread_normal_find thread.
 int framereadcount = 0; // value for mutex.
+int mutex_resultcount = 0;
 map<int, bitset<BITSET_LENGTH>> frame_map; // save frames for thread
 /*
 Function description
@@ -66,7 +68,7 @@ int main() {
         cout << "file open is error!\n";
         return 1;
     }
-
+    
     ofstream outputfile(videolistname.substr(0, videolistname.length()-4) + string("_output.txt"));
     if (outputfile.is_open() == false) {
         cout << "output file open error!\n";
@@ -184,7 +186,22 @@ void thread_normal_find (int pos_game, int pos_highlight, int thread_count, stri
 
     highlight.read(h_frame);
     tenary_vectorzie(h_bits, h_frame);
-    while (thread_framematch_result.first == 0 && pos_game < last_game) {
+    while (pos_game < last_game) {
+        mutex_resultreader.lock();
+        mutex_resultcount++;
+        if (mutex_resultcount == 1) mutex_result.lock();
+        mutex_resultreader.unlock();
+        if (thread_framematch_result.first != 0) {
+            mutex_resultreader.lock();
+            mutex_resultcount--;
+            if (mutex_resultcount == 0) mutex_result.unlock();
+            mutex_resultreader.unlock();
+            break;
+        }
+        mutex_resultreader.lock();
+        mutex_resultcount--;
+        if (mutex_resultcount == 0) mutex_result.unlock();
+        mutex_resultreader.unlock();
         try {
             mutex_framereader.lock();
             framereadcount++;
@@ -234,17 +251,40 @@ void thread_normal_find (int pos_game, int pos_highlight, int thread_count, stri
         }
         else if (!sims.empty() && sim >= 40) {
             sort(sims.begin(), sims.end(), sim_comp);
-            mutex_framereader.lock();
+            mutex_result.lock();
             if (thread_framematch_result.second > pos_highlight)
                 thread_framematch_result = {sims[0].first, pos_highlight};
             cout << "oh i find it " << thread_framematch_result.first << " / " << thread_framematch_result.second << '\n';
-            mutex_framereader.unlock();
+            mutex_result.unlock();
             break;
         }
         pos_game++;
     }
+    mutex_resultreader.lock();
+    mutex_resultcount++;
+    if (mutex_resultcount == 1) mutex_result.lock();
+    mutex_resultreader.unlock();
     if (thread_framematch_result.second > pos_highlight) {
-        while (pos_game < thread_framematch_result.first) {
+        mutex_resultreader.lock();
+        mutex_resultcount--;
+        if (mutex_resultcount == 0) mutex_result.unlock();
+        mutex_resultreader.unlock();
+        while (true) {
+            mutex_resultreader.lock();
+            mutex_resultcount++;
+            if (mutex_resultcount == 1) mutex_result.lock();
+            mutex_resultreader.unlock();
+            if (pos_game >= thread_framematch_result.first) {
+                mutex_resultreader.lock();
+                mutex_resultcount--;
+                if (mutex_resultcount == 0) mutex_result.unlock();
+                mutex_resultreader.unlock();
+                break;
+            }
+            mutex_resultreader.lock();
+            mutex_resultcount--;
+            if (mutex_resultcount == 0) mutex_result.unlock();
+            mutex_resultreader.unlock();
             try {
                 mutex_framereader.lock();
                 framereadcount++;
@@ -256,6 +296,10 @@ void thread_normal_find (int pos_game, int pos_highlight, int thread_count, stri
                 if (framereadcount == 0) mutex_frame.unlock();
                 mutex_framereader.unlock();
             } catch(const out_of_range& oor) {
+                mutex_framereader.lock();
+                framereadcount--;
+                if (framereadcount == 0) mutex_frame.unlock();
+                mutex_framereader.unlock();
                 if (pos_game+1 != game.get(CAP_PROP_POS_FRAMES)) {
                     while (pos_game > game.get(CAP_PROP_POS_FRAMES))
                         game.read(f_frame);
@@ -272,16 +316,24 @@ void thread_normal_find (int pos_game, int pos_highlight, int thread_count, stri
             }
             else if (!sims.empty() && sim >= 40) {
                 sort(sims.begin(), sims.end(), sim_comp);
-                mutex_framereader.lock();
+                mutex_result.lock();
                 if (thread_framematch_result.second > pos_highlight)
                     thread_framematch_result = {sims[0].first, pos_highlight};
-                mutex_framereader.unlock();
+                mutex_result.unlock();
                 break;
             }
             pos_game++;
         }
     }
-    if (pos_game >= pos_game_origin + 3000 && thread_count != 15)
+    else {
+        mutex_resultreader.lock();
+        mutex_resultcount--;
+        if (mutex_resultcount == 0) mutex_result.unlock();
+        mutex_resultreader.unlock();
+    }
+    game.release();
+    highlight.release();
+    if (t1.joinable())
         t1.join();
 }
 
@@ -290,13 +342,13 @@ bool frame_match(string fullgame_name, string highligh_name, ofstream& file) {
     VideoCapture game(fullgame_name);
     VideoCapture highlight(highligh_name);
     bitset<BITSET_LENGTH> h_bits, f_bits;
-
+    
     if (!game.isOpened()) {
-        printf("Fullgame file can not open\n");
+        file << fullgame_name << " can not open\n";
         return false;
     }
     if (!highlight.isOpened()) {
-        printf("Highlight file can not open\n");
+        file << highligh_name << " can not open\n";
         return false;
     }
 
@@ -304,10 +356,9 @@ bool frame_match(string fullgame_name, string highligh_name, ofstream& file) {
 
     int last_highlight = highlight.get(CAP_PROP_FRAME_COUNT);
     int last_game = game.get(CAP_PROP_FRAME_COUNT);
-    clock_t start_time = clock();
-    highlight.set(CAP_PROP_POS_FRAMES, 300);
+    highlight.set(CAP_PROP_POS_FRAMES, 1380);
     game.set(CAP_PROP_POS_FRAMES, 0);
-    int pos_highlight = 300, pos_game = 0, matched_pos_game;
+    int pos_highlight = 1380, pos_game = 0;
     double fps_game = game.get(CAP_PROP_FPS);
     double fps_highlight = highlight.get(CAP_PROP_FPS);
     int sim;
@@ -327,6 +378,7 @@ bool frame_match(string fullgame_name, string highligh_name, ofstream& file) {
             }
             if (state == NORMAL_FIND) {
                 thread_framematch_result = {0, last_highlight+1};
+                framereadcount = 0; mutex_resultcount = 0;
                 thread_normal_find(pos_game, pos_highlight, 0, fullgame_name, highligh_name);
                 frame_map.clear();
                 mutex_frame.unlock(); mutex_framereader.unlock();
