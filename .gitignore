@@ -1,1 +1,4 @@
 .ipynb_checkpoints/
+*.log
+*.h5
+*.pth
