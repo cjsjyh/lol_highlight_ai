@@ -3,3 +3,4 @@
 *.h5
 *.pth
 *.mp4
+model/result/
