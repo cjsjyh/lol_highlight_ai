@@ -21,6 +21,7 @@ game = h5[name].keys()
 
 
 for each in game:
+    print(each)
     start = 0
     end = 0
     concat = []
@@ -37,7 +38,16 @@ for each in game:
                 end = idx
         else:
             if start != 0:
-                cut = clip.subclip(start/30,end/30)
+                if end/30 > clip.duration:
+                    print(end,clip.duration)
+                    end = clip.duration
+                    cut = clip.subclip(start/30,end)
+                    concat.append(cut)
+                    break
+                if start/30 > clip.duration:
+                    break
+                print(start,end)
+                cut = clip.subclip(int(start/30),int(end/30))
                 concat.append(cut)
             start = 0
     summary = con(concat)
