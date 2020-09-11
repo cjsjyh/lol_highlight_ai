@@ -1,5 +1,5 @@
 import numpy as np
-from .cpd_nonlin import cpd_nonlin
+from cpd_nonlin import cpd_nonlin
 
 def cpd_auto(K, ncp, vmax, desc_rate=1, **kwargs):
     """Main interface
