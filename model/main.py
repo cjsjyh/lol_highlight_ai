@@ -19,7 +19,7 @@ import torch.nn.init as init
 from config import  *
 from sys_utils import *
 from vsum_tools import  *
-from vasnet_model import  *
+from model.vasnet_model import  *
 
 
 def weights_init(m):
@@ -160,8 +160,8 @@ class AONet:
         random.seed(rnd_seed)
         np.random.seed(rnd_seed)
         torch.manual_seed(rnd_seed)
-
-        self.model = VASNet()
+        self.model = hps.model()
+        print(self.model)
         self.model.eval()
         self.model.apply(weights_init)
         #print(self.model)
@@ -479,6 +479,7 @@ if __name__ == "__main__":
     parser.add_argument('-v', '--verbose', action='store_true', help="Prints out more messages")
     parser.add_argument('-o', '--output-dir', type=str, default='data', help="Experiment name")
     parser.add_argument('-c', '--change-point', action='store_true',help="use sift as change point")
+    parser.add_argument('-m', '--model', type=str, default='vasnet',help="model to experiment")
     args = parser.parse_args()
     print(args.__dict__)
     # MAIN

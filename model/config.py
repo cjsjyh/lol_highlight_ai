@@ -6,7 +6,7 @@ __date__ = "1/12/2018"
 __license__= "MIT License"
 
 from torch.autograd import Variable
-
+from model.vasnet_model import VASNet
 
 class HParameters:
 
@@ -26,6 +26,9 @@ class HParameters:
         self.output_dir = 'ex-10'
 
         self.root = ''
+        self.model_name = {
+                "vasnet":VASNet
+                }
         self.datasets=[#'datasets/a.h5',
                        # 'datasets/b.h5',
                        # 'datasets/c.h5',
@@ -66,8 +69,10 @@ class HParameters:
             if val is not None:
                 if hasattr(self, key) and isinstance(getattr(self, key), list):
                     val = val.split()
-
                 setattr(self, key, val)
+                if key == "model":
+                    setattr(self, "model",self.model_name[val])
+
 
     def __str__(self):
         vars = [attr for attr in dir(self) if not callable(getattr(self,attr)) and not (attr.startswith("__") or attr.startswith("_"))]
@@ -80,6 +85,8 @@ class HParameters:
             info_str += '['+str(i)+'] '+var+': '+str(val)+'\n'
 
         return info_str
+    def model(self):
+        model_dict = {'vasnet':VASNet()}
 
 
 if __name__ == "__main__":
