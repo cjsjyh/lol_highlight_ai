@@ -3,4 +3,6 @@
 *.h5
 *.pth
 *.mp4
+*.tar
+*.pyc
 model/result/
