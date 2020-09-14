@@ -232,29 +232,7 @@ class AONet:
             for i, key in enumerate(train_keys):
                 #print(f'key : {key}')
                 dataset = self.get_data(key)
-                #print(dataset)
-                seq = dataset['features'][...]
-                #print(f'seq shape : {seq.shape}')
-                #audio = dataset['audio_features'][...]
-                #seq = np.concatenate((seq, audio), 1)
-                #print(f'seq shape : {seq.shape}')
-                seq = torch.from_numpy(seq).unsqueeze(0)
-                #print(f'seq : {seq}')
-                target = dataset['gtscore'][...]
-                #print("i start")
-                #print(target.shape)
-                target = torch.from_numpy(target).unsqueeze(0)
-
-                # Normalize frame scores
-                target -= target.min()
-                if target.max() != 0:
-                    target /= target.max()
-
-                if self.hps.use_cuda:
-                    seq, target = seq.float().cuda(), target.float().cuda()
-
-                seq_len = seq.shape[1]
-                y, _ = self.model(seq,seq_len)
+                y, _, target = self.model.train_wrapper(self.hps, dataset)
 
                 loss_att = 0
                 #print(np.where(target>0))
@@ -302,15 +280,8 @@ class AONet:
         att_vecs = {}
         with torch.no_grad():
             for i, key in enumerate(keys):
-                data = self.get_data(key)
-                # seq = self.dataset[key]['features'][...]
-                seq = data['features'][...]
-                seq = torch.from_numpy(seq).unsqueeze(0)
-
-                if self.hps.use_cuda:
-                    seq = seq.float().cuda()
-
-                y, att_vec = self.model(seq, seq.shape[1])
+                dataset = self.get_data(key)
+                y, att_vec = self.model.eval_wrapper(self.hps, dataset)
                 summary[key] = y[0].detach().cpu().numpy()
                 att_vecs[key] = att_vec.detach().cpu().numpy()
 

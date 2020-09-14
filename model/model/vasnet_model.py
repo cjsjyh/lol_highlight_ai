@@ -84,6 +84,37 @@ class VASNet(nn.Module):
         self.layer_norm_y = LayerNorm(self.m)
         self.layer_norm_ka = LayerNorm(self.ka.out_features)
 
+    def train_wrapper(self, hps, dataset):
+        seq = dataset['features'][...]
+        #print(f'seq shape : {seq.shape}')
+        #audio = dataset['audio_features'][...]
+        #seq = np.concatenate((seq, audio), 1)
+        #print(f'seq shape : {seq.shape}')
+        seq = torch.from_numpy(seq).unsqueeze(0)
+        #print(f'seq : {seq}')
+        target = dataset['gtscore'][...]
+        #print("i start")
+        #print(target.shape)
+        target = torch.from_numpy(target).unsqueeze(0)
+
+        # Normalize frame scores
+        target -= target.min()
+        if target.max() != 0:
+            target /= target.max()
+        if hps.use_cuda:
+            seq, target = seq.float().cuda(), target.float().cuda()
+ 
+        return self.forward(seq,seq.shape[1]) + (target,)
+
+    def eval_wrapper(self, hps, dataset):
+        # seq = self.dataset[key]['features'][...]
+        seq = dataset['features'][...]
+        seq = torch.from_numpy(seq).unsqueeze(0)
+
+        if hps.use_cuda:
+            seq = seq.float().cuda()
+        
+        return self.forward(seq, seq.shape[1])
 
     def forward(self, x, seq_len):
 
