@@ -3,6 +3,9 @@
 
 RAN=$(seq 0 4)
 
+echo -n "set name of model to run : "
+read MODEL
+
 echo -n "give name of data except .h5 : "
 read H5
 
@@ -13,8 +16,8 @@ echo -n "set name of result_file : "
 read RESULTDIR
 
 
-python3 main.py -t > $LOGNAME.log
-python3 main.py > evaluation_$LOGNAME.log
+python3 main.py -t -m $MODEL > $LOGNAME.log
+python3 main.py -m $MODEL > evaluation.$MODEL.$LOGNAME.log
 mkdir result/result_$RESULTDIR
 mv data/models/$H5* result/result_$RESULTDIR
 mv data/result.txt result/result_$RESULTDIR
