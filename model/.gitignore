@@ -4,4 +4,4 @@ data/code/
 *.pth.tar
 *.pyc
 *.txt
-
+*.log
