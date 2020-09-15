@@ -65,7 +65,7 @@ class SelfAttention(nn.Module):
 
 
 
-class VASNet_Audio20(nn.Module):
+class VASNet_Audio20_Concat(nn.Module):
 
     def __init__(self):
         super(VASNet_Audio20, self).__init__()
