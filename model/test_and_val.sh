@@ -16,9 +16,9 @@ echo -n "set name of result_file : "
 read RESULTDIR
 
 
-python3 main.py -t -m $MODEL > $LOGNAME.log
-python3 main.py -m $MODEL > evaluation.$MODEL.$LOGNAME.log
 mkdir result/result_$RESULTDIR
+python3 main.py -t -m $MODEL > result/result_$RESULTDIR/$LOGNAME.log
+python3 main.py -m $MODEL > result/result_$RESULTDIR/evaluation.$MODEL.$LOGNAME.log
 mv data/models/$H5* result/result_$RESULTDIR
 mv data/results.txt result/result_$RESULTDIR
 mv data/splits/$H5* result/result_$RESULTDIR
