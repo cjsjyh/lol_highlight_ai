@@ -1,6 +1,7 @@
 audio/
 __pycache__/*
 data/code/
+directory/
 *.pth.tar
 *.pyc
 *.txt

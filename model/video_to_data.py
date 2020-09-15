@@ -123,8 +123,7 @@ def get_cp(video_frames,max_cp):
 #-------------------------------------
 # Wrap data into h5 file
 #-------------------------------------
-def revise_to_h5(f,video_name,features=None,audio_features_20=None,audio_features_512=None,audio_features_1024=None,gtscore=None,gtsummary=None,n_frame_per_seg=None,n_frames=None,change_point=None,picks=None,n_steps=None,user_summary=None,video_name_original=None,cp_sift=None,n_frame_per_seg_sift=None):
-    print("Revising Data into h5 Format")
+def revise_to_h5(f,video_name,features=None,audio_features_20=None,audio_features_128=None,gtscore=None,gtsummary=None,n_frame_per_seg=None,n_frames=None,change_point=None,picks=None,n_steps=None,user_summary=None,video_name_original=None,cp_sift=None,n_frame_per_seg_sift=None):
     if features is not None:
         if "features" in f[video_name].keys():
             del f[video_name]["features"]
@@ -133,14 +132,10 @@ def revise_to_h5(f,video_name,features=None,audio_features_20=None,audio_feature
         if "audio_features_20" in f[video_name].keys():
             del f[video_name]["audio_features_20"]
         f.create_dataset(video_name+'/audio_features_20',data = audio_features_20)
-    if audio_features_512 is not None:
-        if "audio_features_512" in f[video_name].keys():
-            del f[video_name]["audio_features_512"]
-        f.create_dataset(video_name+'/audio_features_512',data = audio_features_512)
-    if audio_features_1024 is not None:
-        if "audio_features_1024" in f[video_name].keys():
-            del f[video_name]["audio_features_1024"]
-        f.create_dataset(video_name+'/audio_features_1024',data = audio_features_1024)
+    if audio_features_128 is not None:
+        if "audio_features_128" in f[video_name].keys():
+            del f[video_name]["audio_features_128"]
+        f.create_dataset(video_name+'/audio_features_128',data = audio_features_128)
     if n_frame_per_seg is not None:
         if "n_frame_per_seg" in f[video_name].keys():
             del f[video_name]["n_frame_per_seg"]
@@ -215,9 +210,8 @@ def one_video_to_h5(h5,path,game,frame_space=15,full_space=5,threshold=0.007,sif
     #----------------------------------------
     # Extract Audio Features
     #----------------------------------------
-    #audio_features_20 = extract_audio_features(vid_name, frame_space)
-    audio_features_512 = extract_audio_features(vid_name, frame_space, 512)
-    audio_features_1024 = extract_audio_features(vid_name, frame_space, 1024)
+    audio_features_20 = extract_audio_features(vid_name, frame_space)
+    audio_features_128 = extract_audio_features(vid_name, frame_space, 128)
     #----------------------------------------
     # Extract Video Features
     #----------------------------------------
@@ -246,8 +240,7 @@ def one_video_to_h5(h5,path,game,frame_space=15,full_space=5,threshold=0.007,sif
     if create:
         if game not in dataset.keys():
             revise_to_h5(h5,game,
-                    audio_features_512=audio_features_512,
-                    audio_features_1024=audio_features_1024,
+                    audio_features_128=audio_features_128,
                     audio_features_20=audio_features_20, 
                     features=features,
                     n_frame_per_seg=n_frame_per_seg, 
@@ -262,10 +255,10 @@ def one_video_to_h5(h5,path,game,frame_space=15,full_space=5,threshold=0.007,sif
             print(f"{game} is already in h5!")
     else:
         revise_to_h5(h5,game,
-                audio_features_512=audio_features_512,
-                audio_features_1024=audio_features_1024
+                audio_feature_20=audio_feature_20,
+                audio_features_128=audio_features_128,
             )
-        #revise_to_h5(h5,game,audio_features_20=audio_features,features=features,n_frame_per_seg=n_frame_per_seg,n_frames=n_frames,change_point=change_points,picks=picks,n_steps=n_steps,cp_sift=cp_sift,n_frame_per_seg_sift=n_frame_per_seg_sift)
+        revise_to_h5(h5,game,audio_features_20=audio_features,features=features,n_frame_per_seg=n_frame_per_seg,n_frames=n_frames,change_point=change_points,picks=picks,n_steps=n_steps,cp_sift=cp_sift,n_frame_per_seg_sift=n_frame_per_seg_sift)
     end_making_video = time.time()
     print(f'total {end_making_video-start_making_video} seconds has taken')
 
@@ -278,7 +271,8 @@ if __name__ == "__main__":
 
     for game in m2.keys():
         print(game)
-        one_video_to_h5(m2, video_path, game)
+        if(game == "20200618_KT_DYN_2_full.mp4"): # feature 3004 audio 2764
+            one_video_to_h5(m2, video_path, game)
 
 
     
