@@ -1,0 +1,14 @@
+set name of model to run : ./test_and_val.sh: line 7: read: read error: 0: Bad file descriptor
+give name of data except .h5 : ./test_and_val.sh: line 10: read: read error: 0: Bad file descriptor
+set name of experiment's log : ./test_and_val.sh: line 13: read: read error: 0: Bad file descriptor
+set name of result_file : ./test_and_val.sh: line 16: read: read error: 0: Bad file descriptor
+usage: PyTorch implementation of paper "Summarizing Videos with Attention"
+       [-h] [-r ROOT] [-d DATASETS] [-s SPLITS] [-t] [-v] [-o OUTPUT_DIR] [-c]
+       [-m MODEL]
+PyTorch implementation of paper "Summarizing Videos with Attention": error: argument -m/--model: expected one argument
+usage: PyTorch implementation of paper "Summarizing Videos with Attention"
+       [-h] [-r ROOT] [-d DATASETS] [-s SPLITS] [-t] [-v] [-o OUTPUT_DIR] [-c]
+       [-m MODEL]
+PyTorch implementation of paper "Summarizing Videos with Attention": error: argument -m/--model: expected one argument
+mv: cannot stat 'data/models/*': No such file or directory
+mv: cannot stat 'data/result.txt': No such file or directory

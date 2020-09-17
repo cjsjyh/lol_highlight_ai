@@ -230,7 +230,6 @@ class AONet:
             random.shuffle(train_keys)
             #print("Am i get ignored?")
             for i, key in enumerate(train_keys):
-                print(f'key : {key}')
                 dataset = self.get_data(key)
                 y, _, target = self.model.train_wrapper(self.hps, dataset)
 
