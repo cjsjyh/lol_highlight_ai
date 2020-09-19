@@ -8,6 +8,7 @@ __license__= "MIT License"
 from torch.autograd import Variable
 from model.vasnet_model import VASNet
 from model.vasnet_audio20_concat import VASNet_Audio20_Concat
+from model.vasnet_audio128_concat import VASNet_Audio128_Concat
 
 class HParameters:
 
@@ -29,7 +30,8 @@ class HParameters:
         self.root = ''
         self.model_name = {
                 "vasnet":VASNet,
-                "vasnet_audio20":VASNet_Audio20_Concat
+                "vasnet_audio20_concat":VASNet_Audio20_Concat,
+                "vasnet_audio128_concat":VASNet_Audio128_Concat
                 }
         self.datasets=[#'datasets/a.h5',
                        # 'datasets/b.h5',

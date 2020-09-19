@@ -65,12 +65,12 @@ class SelfAttention(nn.Module):
 
 
 
-class VASNet_Audio20_Concat(nn.Module):
+class VASNet_Audio128_Concat(nn.Module):
 
     def __init__(self):
-        super(VASNet_Audio20_Concat, self).__init__()
+        super(VASNet_Audio128_Concat, self).__init__()
 
-        self.m = 1044 # cnn features size
+        self.m = 1152 # cnn features size
 
         self.att = SelfAttention(input_size=self.m, output_size=self.m)
         self.ka = nn.Linear(in_features=self.m, out_features=1024)
@@ -87,8 +87,8 @@ class VASNet_Audio20_Concat(nn.Module):
 
     def train_wrapper(self, hps, dataset):
         seq = dataset['features'][...]
-        audio_20 = dataset['audio_features_20'][...]
-        seq = np.concatenate((seq, audio_20), 1)
+        audio_128 = dataset['audio_features_128'][...]
+        seq = np.concatenate((seq, audio_128), 1)
         seq = torch.from_numpy(seq).unsqueeze(0)
 
         target = dataset['gtscore'][...]
@@ -106,8 +106,8 @@ class VASNet_Audio20_Concat(nn.Module):
     def eval_wrapper(self, hps, dataset):
         # seq = self.dataset[key]['features'][...]
         seq = dataset['features'][...]
-        audio_20 = dataset['audio_features_20'][...]
-        seq = np.concatenate((seq, audio_20), 1)
+        audio_128 = dataset['audio_features_128'][...]
+        seq = np.concatenate((seq, audio_128), 1)
         seq = torch.from_numpy(seq).unsqueeze(0)
 
         if hps.use_cuda:
