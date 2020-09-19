@@ -232,7 +232,6 @@ class AONet:
             for i, key in enumerate(train_keys):
                 dataset = self.get_data(key)
                 y, _, target = self.model.train_wrapper(self.hps, dataset)
-
                 loss_att = 0
                 #print(np.where(target>0))
                 #print("y:"+str(y))
