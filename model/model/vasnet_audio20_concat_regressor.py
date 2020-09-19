@@ -86,7 +86,7 @@ class VASNet_Audio20_Concat_regressor(nn.Module):
         self.softmax = nn.Softmax(dim=0)
         self.layer_norm_y = LayerNorm(self.concat_size)
         self.layer_norm_ka = LayerNorm(self.ka.out_features)
- 
+        self.layer_norm_audio = LayerNorm(self.audio_linear.out_features)
 
     def train_wrapper(self, hps, dataset):
         seq = dataset['features'][...]
@@ -127,6 +127,7 @@ class VASNet_Audio20_Concat_regressor(nn.Module):
         x = x.view(-1, m)
         aud = self.audio_linear(audio)
         aud = aud.view(-1,512)
+        aud = self.layer_norm_audio(aud)
         #print(aud.shape)
         #audio = audio.view(-1,audio.shape[2])
         y, att_weights_ = self.att(x)
