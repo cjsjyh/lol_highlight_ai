@@ -32,7 +32,7 @@ class HParameters:
         self.model_name = {
                 "vasnet":VASNet,
                 "vasnet_audio20_concat":VASNet_Audio20_Concat,
-                "vasnet_audio128_concat":VASNet_Audio128_Concat
+                "vasnet_audio128_concat":VASNet_Audio128_Concat,
                 "vasnet_audio20":VASNet_Audio20_Concat,
                 "vasnet_audio20_regressor":VASNet_Audio20_Concat_regressor
                 }
