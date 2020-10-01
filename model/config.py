@@ -11,6 +11,7 @@ from model.vasnet_audio20_concat import VASNet_Audio20_Concat
 from model.vasnet_audio128_concat import VASNet_Audio128_Concat
 from model.vasnet_audio20_concat_regressor import VASNet_Audio20_Concat_regressor
 from model.vasnet_audio20_concat_regressor512 import VASNet_Audio20_Concat_regressor512
+from model.vasnet_audio128_attention import VASNet_Audio128_Attention
 class HParameters:
 
     def __init__(self):
@@ -21,7 +22,7 @@ class HParameters:
 
         self.l2_req = 0.00001
         self.lr_epochs = [0]
-        self.lr = [0.00005]
+        self.lr = [0.0000005]
 
         self.epochs_max = 300
         self.train_batch_size = 1
@@ -36,6 +37,7 @@ class HParameters:
                 "vasnet_audio20":VASNet_Audio20_Concat,
                 "vasnet_audio20_regressor":VASNet_Audio20_Concat_regressor,
                 "vasnet_audio20_regressor512":VASNet_Audio20_Concat_regressor512,
+                "vasnet_audio128_att":VASNet_Audio128_Attention,
                 }
         self.datasets=[#'datasets/a.h5',
                        # 'datasets/b.h5',
@@ -46,7 +48,7 @@ class HParameters:
                        # 'datasets/merge.h5',
                        #'datasets/m2.h5'
                        #'datasets/m3_audio.h5',
-                       'datasets/m3_audio_512.h5'
+                       'datasets/m3_audio.h5'
                        #'datasets/audio.h5'
                        #'datasets/LOL.h5'
                        ]
@@ -59,8 +61,8 @@ class HParameters:
                        #'splits/f_splits.json'
                        #'splits/merge_splits.json'
                        #'splits/m2_splits.json',
-                       #'splits/m3_audio_splits.json',
-                       'splits/m3_audio_512_splits.json'
+                       'splits/m3_audio_splits.json',
+                       #'splits/m3_audio_512.json'
                        #'splits/audio_splits.json'
                         #'splits/merge_gaussian_splits.json'
                         #'splits/LOL_splits.json'
