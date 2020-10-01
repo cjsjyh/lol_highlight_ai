@@ -70,8 +70,9 @@ class VASNet_Audio128_Concat(nn.Module):
     def __init__(self):
         super(VASNet_Audio128_Concat, self).__init__()
 
-        self.m = 1152 # cnn features size
-
+        self.m = 1024 + 512 # cnn features size
+        self.audio_size = 128
+        self.audio_linear = nn.Linear(in_features=self.audio_size,out_features=512, bias=False)
         self.att = SelfAttention(input_size=self.m, output_size=self.m)
         self.ka = nn.Linear(in_features=self.m, out_features=1024)
         self.kb = nn.Linear(in_features=self.ka.out_features, out_features=1024)
@@ -84,46 +85,56 @@ class VASNet_Audio128_Concat(nn.Module):
         self.softmax = nn.Softmax(dim=0)
         self.layer_norm_y = LayerNorm(self.m)
         self.layer_norm_ka = LayerNorm(self.ka.out_features)
+        self.layer_norm_audio=LayerNorm(self.audio_linear.out_features)
 
     def train_wrapper(self, hps, dataset):
         seq = dataset['features'][...]
         audio_128 = dataset['audio_features_128'][...]
-        seq = np.concatenate((seq, audio_128), 1)
+        #seq = np.concatenate((seq, audio_128), 1)
         seq = torch.from_numpy(seq).unsqueeze(0)
 
         target = dataset['gtscore'][...]
         target = torch.from_numpy(target).unsqueeze(0)
-
+        audio_128 = torch.from_numpy(audio_128).unsqueeze(0)
         # Normalize frame scores
         target -= target.min()
         if target.max() != 0:
             target /= target.max()
         if hps.use_cuda:
+            audio_128 = audio_128.float().cuda()
             seq, target = seq.float().cuda(), target.float().cuda()
  
-        return self.forward(seq,seq.shape[1]) + (target,)
+        return self.forward(seq,seq.shape[1],audio_128,audio_128.shape[1]) + (target,)
 
     def eval_wrapper(self, hps, dataset):
         # seq = self.dataset[key]['features'][...]
         seq = dataset['features'][...]
         audio_128 = dataset['audio_features_128'][...]
-        seq = np.concatenate((seq, audio_128), 1)
+        #seq = np.concatenate((seq, audio_128), 1)
         seq = torch.from_numpy(seq).unsqueeze(0)
+        audio_128 = torch.from_numpy(audio_128).unsqueeze(0)
 
         if hps.use_cuda:
+            audio_128 = audio_128.float().cuda()
             seq = seq.float().cuda()
         
-        return self.forward(seq, seq.shape[1])
+        return self.forward(seq, seq.shape[1],audio_128,audio_128.shape[1])
 
-    def forward(self, x, seq_len):
+    def forward(self, x, seq_len,audio,audio_len):
 
         m = x.shape[2] # Feature size
+        aud = self.audio_linear(audio)
+        #aud = aud.view(-1,audio_len)
+        aud = self.layer_norm_audio(aud)
+        aud = aud.view(audio_len,-1)
 
         # Place the video frames to the batch dimension to allow for batch arithm. operations.
         # Assumes input batch size = 1.
         x = x.view(-1, m)
-        x = self.layer_norm_y(x)
-
+        #x = self.layer_norm_y(x)
+        #print(x.shape)
+        #print(aud.shape)
+        x = torch.cat((x,aud),dim=1)
         y, att_weights_ = self.att(x)
         #print(f'y from attention :{y.data.cpu().numpy()[0]}')
         y = y + x

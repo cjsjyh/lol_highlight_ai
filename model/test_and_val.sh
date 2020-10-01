@@ -15,7 +15,7 @@ read LOGNAME
 echo -n "set name of result_file : "
 read RESULTDIR
 
-
+mkdir result
 mkdir result/result_$RESULTDIR
 python3 main.py -t -m $MODEL -o result/result_$RESULTDIR/ > result/result_$RESULTDIR/$LOGNAME.log
 python3 main.py -m $MODEL > result/result_$RESULTDIR/evaluation.$MODEL.$LOGNAME.log
