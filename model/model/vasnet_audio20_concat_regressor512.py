@@ -65,13 +65,13 @@ class SelfAttention(nn.Module):
 
 
 
-class VASNet_Audio20_Concat_regressor(nn.Module):
+class VASNet_Audio20_Concat_regressor512(nn.Module):
 
     def __init__(self):
-        super(VASNet_Audio20_Concat_regressor, self).__init__()
+        super(VASNet_Audio20_Concat_regressor512, self).__init__()
         self.m = 1024 # cnn features size
         self.audio_size = 20
-        self.audio_linear = nn.Linear(in_features=self.audio_size,out_features=20, bias=False)
+        self.audio_linear = nn.Linear(in_features=self.audio_size, out_features=512, bias=False)
         self.concat_size = self.m + self.audio_linear.out_features
         
         self.att = SelfAttention(input_size=self.m, output_size=self.m)
@@ -126,10 +126,10 @@ class VASNet_Audio20_Concat_regressor(nn.Module):
         # Assumes input batch size = 1.
         x = x.view(-1, m)
         aud = self.audio_linear(audio)
-        #aud = aud.view(-1,512)
+        aud = aud.view(-1,512)
+        #print(aud.shape)
         aud = self.layer_norm_audio(aud)
         #print(aud.shape)
-        aud = aud.view(audio_len,-1)
         #print(aud.shape)
         #audio = audio.view(-1,audio.shape[2])
         y, att_weights_ = self.att(x)
@@ -138,7 +138,6 @@ class VASNet_Audio20_Concat_regressor(nn.Module):
         #print(y.shape)
         #print(audio.shape)
         #y = torch.cat((y,audio),dim=1)
-        #print(y.shape)
         y = torch.cat((y,aud),dim=1)
         y = self.drop50(y)
         y = self.layer_norm_y(y)
