@@ -11,6 +11,8 @@ from model.vasnet_audio20_concat import VASNet_Audio20_Concat
 from model.vasnet_audio128_concat import VASNet_Audio128_Concat
 from model.vasnet_audio20_concat_regressor import VASNet_Audio20_Concat_regressor
 from model.vasnet_audio128_att import VASNet_Audio128_Att
+from model.vasnet_only_audio128_attention import VASNet_Only_Audio128_Att
+from model.vasnet_only_audio128_attention_1024 import VASNet_Only_Audio128_Att_1024
 
 class HParameters:
 
@@ -36,7 +38,8 @@ class HParameters:
                 "vasnet_audio128_concat":VASNet_Audio128_Concat,
                 "vasnet_audio20":VASNet_Audio20_Concat,
                 "vasnet_audio20_regressor":VASNet_Audio20_Concat_regressor,
-                "vasnet_audio128_att": VASNet_Audio128_Att
+                "vasnet_audio128_att": VASNet_Audio128_Att,
+                "vasnet_only_audio128_attention":
             }
         self.datasets=[#'datasets/a.h5',
                        # 'datasets/b.h5',
