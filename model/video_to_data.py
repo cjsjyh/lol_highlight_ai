@@ -34,7 +34,7 @@ def extract_audio_from_video(video_name):
 
 
 def extract_audio_features(video_name, per_frame, n_feature=20):
-    #extract_audio_from_video(video_name)
+    extract_audio_from_video(video_name)
     cap = cv2.VideoCapture(video_name)
     fps = cap.get(cv2.CAP_PROP_FPS)
     count = frame_count = 0
@@ -255,10 +255,10 @@ def one_video_to_h5(h5,path,game,frame_space=15,full_space=5,threshold=0.007,sif
             print(f"{game} is already in h5!")
     else:
         revise_to_h5(h5,game,
-                audio_feature_20=audio_feature_20,
+                audio_features_20=audio_features_20,
                 audio_features_128=audio_features_128,
             )
-        revise_to_h5(h5,game,audio_features_20=audio_features,features=features,n_frame_per_seg=n_frame_per_seg,n_frames=n_frames,change_point=change_points,picks=picks,n_steps=n_steps,cp_sift=cp_sift,n_frame_per_seg_sift=n_frame_per_seg_sift)
+        #revise_to_h5(h5,game,audio_features_20=audio_features,features=features,n_frame_per_seg=n_frame_per_seg,n_frames=n_frames,change_point=change_points,picks=picks,n_steps=n_steps,cp_sift=cp_sift,n_frame_per_seg_sift=n_frame_per_seg_sift)
     end_making_video = time.time()
     print(f'total {end_making_video-start_making_video} seconds has taken')
 
@@ -267,12 +267,13 @@ def one_video_to_h5(h5,path,game,frame_space=15,full_space=5,threshold=0.007,sif
 #-------------------------------------
 if __name__ == "__main__":
     video_path = "/home/lol/total_full_video/" 
-    m2 = h5py.File("/home/lol/h5_dataset/m2.h5","a")
+    m2 = h5py.File("/home/lol/h5_dataset/m3.h5","a")
 
-    for game in m2.keys():
+    for index, game in enumerate(m2.keys()):
+        if index >= 100:
+            break
         print(game)
-        if(game == "20200618_KT_DYN_2_full.mp4"): # feature 3004 audio 2764
-            one_video_to_h5(m2, video_path, game)
+        one_video_to_h5(m2, video_path, game)
 
 
     

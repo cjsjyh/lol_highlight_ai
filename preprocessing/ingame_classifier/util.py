@@ -126,7 +126,7 @@ def cutVideo(filename, inference_path, raw_path, result_path):
         ffmpeg_extract_subclip(
                 raw_path+filename+".mp4",
                 game_range['start'],
-                game_range['end'],
+                game_range['end']+180,
                 targetname=f"{result_path}{game_date}_{game_info[info_index]['team1'].upper()}_{game_info[info_index]['team2'].upper()}_{game_index}_full.mp4"
         )
         game_index += 1
@@ -138,6 +138,46 @@ def cutVideo(filename, inference_path, raw_path, result_path):
 #    '/home/lol/lol_highlight_ai/preprocessing/downloader/full_raw/',
 #    '/home/lol/lol_highlight_ai/preprocessing/ingame_classifier/full_video/'
 #    )
+
+a = '/home/lol/lol_highlight_ai/preprocessing/ingame_classifier/inference_result/'
+b = '/home/lol/lol_highlight_ai/preprocessing/downloader/full_raw/'
+c = '/home/lol/lol_highlight_ai/preprocessing/ingame_classifier/full_video/'
+cutVideo('20200325_GRF_GEN_KT_DWG_HLE_DRX',a,b,c)
+cutVideo('20200326_AF_SB_T1_APK_GEN_DWG',a,b,c)
+cutVideo('20200305_SB_GEN_AF_T1',a,b,c)
+cutVideo('20200327_HLE_KT_SB_GRF_T1_DRX',a,b,c)
+cutVideo('20200617_SB_AF_DRX_T1',a,b,c)
+cutVideo('20200618_KT_DYN_HLE_SP',a,b,c)
+cutVideo('20200620_DYN_AF_T1_HLE',a,b,c)
+cutVideo('20200624_DYN_SP_HLE_KT',a,b,c)
+cutVideo('20200625_DRX_SB_GEN_DWG',a,b,c)
+cutVideo('20200626_AF_T1_HLE_DYN',a,b,c)
+cutVideo('20200627_SP_GEN_DWG_KT',a,b,c)
+cutVideo('20200628_AF_DRX_SB_T1',a,b,c)
+cutVideo('20200402_AF_APK_DWG_HLE_KT_DRX',a,b,c)
+cutVideo('20200404_APK_KT_SB_HLE_GEN_DRX',a,b,c)
+cutVideo('20200405_DWG_T1_APK_GRF_HLE_AF',a,b,c)
+cutVideo('20200408_DWG_GRF_APK_GEN',a,b,c)
+cutVideo('20200409_SB_T1_AF_GRF',a,b,c)
+cutVideo('20200207_HLE_T1_DRX_KT',a,b,c)
+cutVideo('20200209_SB_DRX_AF_HLE',a,b,c)
+cutVideo('20200209_SB_DRX_AF_HLE',a,b,c)
+cutVideo('20200213_KT_T1_DRX_HLE',a,b,c)
+cutVideo('20200215_AF_DRX_HLE_SB',a,b,c)
+cutVideo('20200220_GRF_DWG_KT_APK',a,b,c)
+cutVideo('20200220_GRF_DWG_KT_APK',a,b,c)
+cutVideo('20200221_SB_AF_DRX_GEN',a,b,c)
+cutVideo('20200222_HLE_GRF_APK_T1',a,b,c)
+cutVideo('20200223_AF_KT_SB_DWG',a,b,c)
+cutVideo('20200226_KT_SB_T1_GRF',a,b,c)
+cutVideo('20200228_APK_DRX_T1_SB',a,b,c)
+cutVideo('20200701_T1_DWG_GEN_SB',a,b,c)
+cutVideo('20200702_HLE_AF_DRX_DYN',a,b,c)
+cutVideo('20200416_GRF_HLE_DRX_APK',a,b,c)
+cutVideo('20200420_DRX_DWG',a,b,c)
+cutVideo('20200422_T1_DRX',a,b,c)
+cutVideo('20200425_GEN_T1',a,b,c)
+cutVideo('20200428_SB_DYN_GRF_SRB',a,b,c)
 
 #------------------------------
 # remove unnecessary timestamp

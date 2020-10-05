@@ -46,7 +46,7 @@ class HParameters:
                        #'datasets/f.h5',
                        # 'datasets/merge.h5',
                        #'datasets/m2.h5',
-                       'datasets/m3.h5'
+                       'datasets/m3_copy.h5'
                        #'datasets/m3_copy.h5'
                        #'datasets/audio.h5'
                        #'datasets/LOL.h5'
