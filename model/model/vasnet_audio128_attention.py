@@ -74,7 +74,7 @@ class VASNet_Audio128_Attention(nn.Module):
         self.audio_size = 128
         self.audio_linear = nn.Linear(in_features=self.audio_size,out_features=512, bias=False)
         self.att = SelfAttention(input_size=self.m, output_size=self.m)
-        self.att_audio = SelfAttention(input_size=self.audio_size,output_size=self.audio_size)
+        self.att_audio = SelfAttention(apperture = 40,input_size=self.audio_size,output_size=self.audio_size)
         self.ka = nn.Linear(in_features=self.m+self.audio_size, out_features=1024)
         self.kb = nn.Linear(in_features=self.ka.out_features, out_features=1024)
         self.kc = nn.Linear(in_features=self.kb.out_features, out_features=1024)
@@ -87,6 +87,7 @@ class VASNet_Audio128_Attention(nn.Module):
         self.layer_norm_y = LayerNorm(self.m)
         self.layer_norm_ka = LayerNorm(self.ka.out_features)
         self.layer_norm_audio=LayerNorm(self.att_audio.output_size)
+        self.layer_norm_audio_2 = LayerNorm(self.att_audio.output_size)
 
     def train_wrapper(self, hps, dataset):
         seq = dataset['features'][...]
@@ -128,7 +129,9 @@ class VASNet_Audio128_Attention(nn.Module):
         #aud = aud.view(-1,audio_len)
         #aud = self.layer_norm_audio(aud)
         aud = audio.view(audio_len,-1)
-
+        aud = self.layer_norm_audio_2(aud)
+        #print(f'aud : {aud.data.cpu().numpy()[0]}')
+        #print(f'x : {x.data.cpu().numpy()[0]}')
         # Place the video frames to the batch dimension to allow for batch arithm. operations.
         # Assumes input batch size = 1.
         x = x.view(-1, m)
@@ -142,11 +145,13 @@ class VASNet_Audio128_Attention(nn.Module):
         y = y + x
         y = self.drop50(y)
         y = self.layer_norm_y(y)
+        #print(f'aud_y after attention : {aud_y.data.cpu().numpy()[0]}')
         aud_y = aud_y + aud
         aud_y = self.drop50(aud_y)
         aud_y = self.layer_norm_audio(aud_y)
         # Frame level importance score regression
         # Two layer NN
+        #print(f'aud_y after layer_norm : {aud_y.data.cpu().numpy()[0]}')
         #print(f'y after batch norm : {y.data.cpu().numpy()[0]}')
         y = torch.cat((y,aud_y),dim=1)
         y = self.ka(y)
