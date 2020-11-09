@@ -30,8 +30,9 @@ for each in game:
                 end = idx
         else:
             if start != 0:
-                cut = clip.subclip(start/30,end/30)
-                concat.append(cut)
+                if start-end > 15:
+                    cut = clip.subclip(start/30,end/30)
+                    concat.append(cut)
             start = 0
     summary = con(concat)
     summary.write_videofile('sum_videos/'+num+'/'+each.replace("full","sum"))
