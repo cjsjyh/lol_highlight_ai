@@ -18,7 +18,7 @@ read RESULTDIR
 mkdir result
 mkdir result/result_$RESULTDIR
 python3 main.py -t -m $MODEL -o result/result_$RESULTDIR/ > result/result_$RESULTDIR/$LOGNAME.log
-python3 main.py -m $MODEL > result/result_$RESULTDIR/evaluation.$MODEL.$LOGNAME.log
+python3 main.py -m $MODEL -o result/result_$RESULTDIR > result/result_$RESULTDIR/evaluation.$MODEL.$LOGNAME.log
 mv data/models/$H5* result/result_$RESULTDIR
 #mv data/results.txt result/result_$RESULTDIR
 mv data/splits/$H5* result/result_$RESULTDIR
