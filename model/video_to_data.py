@@ -269,10 +269,9 @@ if __name__ == "__main__":
     video_path = "/home/lol/total_full_video/" 
     m2 = h5py.File("/home/lol/h5_dataset/m2.h5","a")
 
-    for game in m2.keys():
+    for index, game in enumerate(m2.keys()):
         print(game)
-        if(game == "20200618_KT_DYN_2_full.mp4"): # feature 3004 audio 2764
-            one_video_to_h5(m2, video_path, game)
+        one_video_to_h5(m2, video_path, game)
 
 
     
