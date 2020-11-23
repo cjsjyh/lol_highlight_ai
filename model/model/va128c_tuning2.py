@@ -65,26 +65,25 @@ class SelfAttention(nn.Module):
 
 
 
-class Audio_Resnet_Tune(nn.Module):
+class Audio_Resnet_Tune2(nn.Module):
 
     def __init__(self):
-        super(Audio_Resnet_Tune, self).__init__()
+        super(Audio_Resnet_Tune2, self).__init__()
 
-        self.m = 2048 + 1024 # cnn features size
+        self.m = 2048 # cnn features size
         self.audio_size = 128
         self.audio_linear = nn.Linear(in_features=self.audio_size,out_features=1024, bias=False)
         self.att = SelfAttention(input_size=self.m, output_size=self.m)
-        self.ka = nn.Linear(in_features=self.m, out_features=2048+1024)
-        self.kb = nn.Linear(in_features=self.ka.out_features, out_features=2048)
-        self.kc = nn.Linear(in_features=self.kb.out_features, out_features=1024)
-        self.kd = nn.Linear(in_features=self.kb.out_features, out_features=1)
+        self.ka = nn.Linear(in_features=2048+1024, out_features=2048)
+        #self.kb = nn.Linear(in_features=self.ka.out_features, out_features=2048)
+        #self.kc = nn.Linear(in_features=self.kb.out_features, out_features=1024)
+        self.kd = nn.Linear(in_features=self.ka.out_features, out_features=1)
         self.sig = nn.Sigmoid()
         self.relu = nn.ReLU()
         self.drop50 = nn.Dropout(0.5)
         self.softmax = nn.Softmax(dim=0)
         self.layer_norm_y = LayerNorm(self.m)
         self.layer_norm_ka = LayerNorm(self.ka.out_features)
-        self.layer_norm_kb = LayerNorm(self.kb.out_features)
         self.layer_norm_audio=LayerNorm(self.audio_linear.out_features)
 
     def train_wrapper(self, hps, dataset):
@@ -125,21 +124,21 @@ class Audio_Resnet_Tune(nn.Module):
         m = x.shape[2] # Feature size
         aud = self.audio_linear(audio)
         #aud = aud.view(-1,audio_len)
+        aud = self.drop50(aud)
         aud = self.layer_norm_audio(aud)
         aud = aud.view(audio_len,-1)
-
         # Place the video frames to the batch dimension to allow for batch arithm. operations.
         # Assumes input batch size = 1.
         x = x.view(-1, m)
         #x = self.layer_norm_y(x)
         #print(x.shape)
         #print(aud.shape)
-        x = torch.cat((x,aud),dim=1)
         y, att_weights_ = self.att(x)
         #print(f'y from attention :{y.data.cpu().numpy()[0]}')
         y = y + x
         y = self.drop50(y)
         y = self.layer_norm_y(y)
+        y = torch.cat((y,aud),dim=1)
         # Frame level importance score regression
         # Two layer NN
         #print(f'y after batch norm : {y.data.cpu().numpy()[0]}')
@@ -147,10 +146,6 @@ class Audio_Resnet_Tune(nn.Module):
         y = self.relu(y)
         y = self.drop50(y)
         y = self.layer_norm_ka(y)
-        y = self.kb(y)
-        y = self.relu(y)
-        y = self.drop50(y)
-        y = self.layer_norm_kb(y)
         #print(f'y after mlp : {y.data.cpu().numpy()[0]}')
         y = self.kd(y)
         #print(f'y after other mlp : {y.data.cpu().numpy()[0]}')
