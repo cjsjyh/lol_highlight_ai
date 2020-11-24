@@ -4,6 +4,12 @@ __version__= '3.6'
 __status__ = "Research"
 __date__ = "1/12/2018"
 __license__= "MIT License"
+__reviser__="SKT AI Fellowship : E-Sports Highlight"
+
+#codes for hyperparameter setting
+#name with self.datasets and self.splits must have same name
+#(ex. merge.h5 < = > merge_split.json )
+#for new model, you can import your model and should name it on model_name dictionary
 
 from torch.autograd import Variable
 from model.vasnet_model import VASNet

@@ -9,6 +9,24 @@ https://github.com/KaiyangZhou/pytorch-vsumm-reinforce
    year={2017}
 }
 '''
+#create split.json file for dataset.
+#create K-splited cross validation set
+""" example for create_split like
+    "train" : {
+        "20200412_SKT_T1_1_full.mp4",
+        "20200413_G2_SKT_1_full.mp4",
+        ....
+        }
+    "test" : {
+        "20200612_T1_DWG_1_full.mp4",
+        "20200712_T1_T2_1_full.mp4",
+        ....
+        }
+
+    execute command line example
+    python create_split.py -d datasets/m_resnet.h5 --num-splits 5 --save-dir splits
+
+"""
 
 from __future__ import print_function
 import os

@@ -1,6 +1,7 @@
 import numpy as np
 from cpd_nonlin import cpd_nonlin
-
+#code for change point detection
+#no need to change
 def cpd_auto(K, ncp, vmax, desc_rate=1, **kwargs):
     """Main interface
 

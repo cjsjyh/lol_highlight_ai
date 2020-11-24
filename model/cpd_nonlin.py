@@ -1,5 +1,6 @@
 import numpy as np
 #from scipy import weave
+#code for cpd_auto.py
 
 def calc_scatters(K):
     """
