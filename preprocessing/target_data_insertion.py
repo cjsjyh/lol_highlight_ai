@@ -7,6 +7,10 @@ d = h5py.File("h5_dataset/d.h5","r+")
 e = h5py.File("h5_dataset/e.h5","r+")
 f = h5py.File("h5_dataset/f.h5","r+")
 
+#codes for inserting Ground Truth Score to H5 format files
+#there were actually 6 files before merged into one dataset files.
+
+
 def whichFile(video,a,b,c,d,e,f):
     #print(a.keys())
     if video in a.keys():
@@ -63,6 +67,16 @@ def create_GTScore(video, h5,data):
     return gts,user_sum
 
 
+#labeling output text file is consisted by format below
+#<<number of highlighted range>> <<video name>>
+#1032 1552
+#1995 2666
+#14023 16222
+#...
+#...
+#function labelTextToData reads the info from the text and create labelled data
+
+
 def labelTextToData(file):
     with open(file,"r") as gtFile:
         data = None
@@ -93,6 +107,7 @@ def labelTextToData(file):
             h5.create_dataset(video+"/gtsummary",data=gts)
             h5.create_dataset(video+"/user_summary",data=us.reshape(1,-1))
         #print(h5[video]["gtscore"][...].shape)
+
 
 if __name__ == "__main__":
     labelTextToData("video1_output.txt")
