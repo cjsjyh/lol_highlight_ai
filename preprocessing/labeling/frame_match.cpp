@@ -1,3 +1,7 @@
+'''
+
+'''
+
 #include "opencv2/core.hpp"
 #include "opencv2/videoio.hpp"
 #include <iostream>
@@ -17,8 +21,8 @@ using namespace std;
 using namespace cv;
 // !!! It needs to chagne bitest template value to (num_patch * num_patch)C2 * 2, when you want to change num_patch !!!
 #define BITSET_LENGTH 300 
-#define THRESHOLD_VALUE 30
-#define HIGHLIHGHT_START_FRAME 300 // In out condition, 1 seconds is 30 frames
+#define THRESHOLD_VALUE 30 // The lower value, the stricter criterion
+#define HIGHLIHGHT_START_FRAME 300 // The frame where to look first
 
 enum FIND_STATE {NORMAL_FIND, FAST_FIND, SLOW_FIND};
 
