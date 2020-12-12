@@ -38,6 +38,21 @@ sudo chmod a+rx /usr/local/bin/youtube-dl
 brew install youtube-dl
 ```
 
+Format of videos.txt
+```
+[2020 우리은행 LCK Summer Split] SP vs. DRX - kt vs. AF
+Published 2020-07-05 @ 07:30:14  Length: 5 h 28 min
+https://twitch.tv/videos/670539237
+```
+
+## Execution
+```
+python3 downloader.py
+```
+`downloader.py` will download games from twitch and save to `/full_raw`
+
+
+
 ## twitch_list_processor.py
 can get a list of LCK videos by tiwtch-dl videos lck.   
 after that, make a list from the text to automate download process
