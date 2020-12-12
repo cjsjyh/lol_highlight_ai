@@ -1,8 +1,15 @@
 '''
 The purpose of file is to find where highlight is in full game videos.
 To find where highlight is, file check both full video and highlight video of same game.
-file assumes that all there are all full videos in "~/total_full_video" and highlight videos in "~/total_highlight_video".
- 
+File assumes that there are all full videos in "~/total_full_video" and highlight videos in "~/total_highlight_video".
+It is needed to keep video naming rule. It is (DATE)_(TEAM1)_(TEAM2)_(ORDER OF GAME)_(full or hihlihgt).mp4.
+For example, "20200208_GEN_GRF_2_full.mp4" => Full video / "20200208_GEN_GRF_2_highlight.mp4" => highlight video
+When execute file, file asks you name of file which has input files list.
+Input file list file has each full video name at each line.
+when this file finishs excution, file makes new file named "(input file list file name)_result.txt".
+output file saves , at each line, full video file name, number of highlight in video and each highlight of starting frame and end point which is sparated by one space from starting point by all videos.
+Note that this files use multi threading. In the worst case use 16 threads in parallel.
+This file requires opencv2 library.
 '''
 
 #include "opencv2/core.hpp"
@@ -85,8 +92,8 @@ int main() {
 
     while (videolist.eof() == false) {
         videolist >> fullgame_name;
-        highligh_name = string("/home/lol/total_highlight_video/") + fullgame_name.substr(0, fullgame_name.length()-8) + string("highlight.mp4");
-        fullgame_name = string("/home/lol/total_full_video/") + fullgame_name;
+        highligh_name = string("~/total_highlight_video/") + fullgame_name.substr(0, fullgame_name.length()-8) + string("highlight.mp4");
+        fullgame_name = string("~/total_full_video/") + fullgame_name;
         cout << fullgame_name << " : " << highligh_name << '\n';
         frame_match(fullgame_name, highligh_name, outputfile);
     }
