@@ -17,7 +17,7 @@ How to Run the Whole Process :
 Now, You are ready to run the model!   
 
 
-2. Training - use model directory
+2. Training - use model directory   
 (1) move your dataset to lol_highlight_ai/model/datasets   
 (2) run create_split.py -d datasets/yourdatset.h5 --num-splits 5 --save-dir splits  
 (3) change splits.json to [yourdataset]_splits.json  
