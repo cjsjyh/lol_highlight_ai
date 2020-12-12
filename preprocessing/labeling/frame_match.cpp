@@ -16,8 +16,9 @@
 using namespace std;
 using namespace cv;
 // !!! It needs to chagne bitest template value to (num_patch * num_patch)C2 * 2, when you want to change num_patch !!!
-#define BITSET_LENGTH 600 
+#define BITSET_LENGTH 300 
 #define THRESHOLD_VALUE 30
+#define HIGHLIHGHT_START_FRAME 300 // In out condition, 1 seconds is 30 frames
 
 enum FIND_STATE {NORMAL_FIND, FAST_FIND, SLOW_FIND};
 
@@ -356,9 +357,9 @@ bool frame_match(string fullgame_name, string highligh_name, ofstream& file) {
 
     int last_highlight = highlight.get(CAP_PROP_FRAME_COUNT);
     int last_game = game.get(CAP_PROP_FRAME_COUNT);
-    highlight.set(CAP_PROP_POS_FRAMES, 1380);
+    highlight.set(CAP_PROP_POS_FRAMES, HIGHLIHGHT_START_FRAME);
     game.set(CAP_PROP_POS_FRAMES, 0);
-    int pos_highlight = 1380, pos_game = 0;
+    int pos_highlight = HIGHLIHGHT_START_FRAME, pos_game = 0;
     double fps_game = game.get(CAP_PROP_FPS);
     double fps_highlight = highlight.get(CAP_PROP_FPS);
     int sim;

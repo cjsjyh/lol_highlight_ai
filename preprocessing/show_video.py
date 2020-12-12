@@ -1,6 +1,8 @@
 import cv2
 import numpy as np
 
+#mini program when you want to check video frame by frame
+
 capture = cv2.VideoCapture("/home/lol/tj/20200628_AF_DRX_1_highlight.mp4")
 
 while True:

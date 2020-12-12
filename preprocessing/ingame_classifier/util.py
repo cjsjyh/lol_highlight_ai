@@ -13,9 +13,10 @@ def get_filenames(path):
       break
   return f
 
-folder_list = ['2019_wc_highlight_video/',
-'2020_promotion_highlight_video/','2020_spring_highlight_video/',
-'2020_msc_highlight_video/', '2020_summer_highlight_video/']
+#folder_list = ['2019_wc_highlight_video/',
+#'2020_promotion_highlight_video/','2020_spring_highlight_video/',
+#'2020_msc_highlight_video/', '2020_summer_highlight_video/']
+folder_list=['']
 def findHighlightVideoPath(video_name, highlight_path):
     for folder_name in folder_list:
         result = glob.glob(f"{highlight_path}{folder_name}{video_name}*")
@@ -78,7 +79,8 @@ def cutVideo(filename, inference_path, raw_path, result_path):
     print("Cut Video "+filename+" start")
     result_file = open(f"{inference_path}{filename}.txt","r")
     game_date = filename.split('_')[0]
-    highlight_path = findHighlightVideoPath(game_date, '/home/lol/tj/')
+    highlight_path = findHighlightVideoPath(game_date,
+            '/home/lol/total_highlight_video/')
     if(highlight_path == ""):
         return
 
@@ -102,7 +104,8 @@ def cutVideo(filename, inference_path, raw_path, result_path):
         end_split = end_line.split()
         if start_split[0] != "start" or end_split[0] != "finish": break
 
-        game_range = { 'start': int(start_split[2]), 'end': int(end_split[2]) }
+        game_range = { 'start': int(start_split[2]), 'end':
+                int(end_split[2])+180 }
         cut_ranges.append(game_range)
 
     # if total number of games doesn't match number of highlight videos
@@ -138,6 +141,18 @@ def cutVideo(filename, inference_path, raw_path, result_path):
 #    '/home/lol/lol_highlight_ai/preprocessing/downloader/full_raw/',
 #    '/home/lol/lol_highlight_ai/preprocessing/ingame_classifier/full_video/'
 #    )
+
+a = '/home/lol/lol_highlight_ai/preprocessing/ingame_classifier/inference_result/'
+b = '/home/lol/lol_highlight_ai/preprocessing/downloader/full_raw/'
+c = '/home/lol/lol_highlight_ai/preprocessing/ingame_classifier/full_video/'
+
+#cutVideo('20200425_GEN_T1',a,b,c)
+#cutVideo('20200702_HLE_AF_DRX_DYN',a,b,c)
+#cutVideo('20200404_APK_KT_SB_HLE_GEN_DRX',a,b,c)
+
+cutVideo('20200325_GRF_GEN_KT_DWG_HLE_DRX',a,b,c)
+cutVideo('20200402_AF_APK_DWG_HLE_KT_DRX',a,b,c)
+
 
 #------------------------------
 # remove unnecessary timestamp

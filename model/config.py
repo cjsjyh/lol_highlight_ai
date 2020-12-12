@@ -58,7 +58,7 @@ class HParameters:
                        # 'datasets/merge.h5',
                        #'datasets/m2.h5'
                        #'datasets/m3_audio.h5',
-                       'datasets/m_resnet.h5'
+                       'datasets/lol_dataset.h5'
                        #'datasets/audio.h5'
                        #'datasets/LOL.h5'
                        ]
@@ -71,7 +71,7 @@ class HParameters:
                        #'splits/f_splits.json'
                        #'splits/merge_splits.json'
                        #'splits/m2_splits.json',
-                       'splits/m_resnet_splits.json',
+                       'splits/lol_dataset_splits.json',
                        #'splits/m3_audio_512.json'
                        #'splits/audio_splits.json'
                         #'splits/merge_gaussian_splits.json'

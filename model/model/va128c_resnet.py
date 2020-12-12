@@ -97,6 +97,9 @@ class Audio_Resnet(nn.Module):
         target = torch.from_numpy(target).unsqueeze(0)
         audio_128 = torch.from_numpy(audio_128).unsqueeze(0)
         # Normalize frame scores
+        #print(target.shape)
+        #print(type(target))
+        target = target.float()
         target -= target.min()
         if target.max() != 0:
             target /= target.max()

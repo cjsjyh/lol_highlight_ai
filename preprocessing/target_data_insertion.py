@@ -1,11 +1,11 @@
 import h5py
 import numpy as np
-a = h5py.File("h5_dataset/a.h5","r+")
-b = h5py.File("h5_dataset/b.h5","r+")
-c = h5py.File("h5_dataset/c.h5","r+")
-d = h5py.File("h5_dataset/d.h5","r+")
-e = h5py.File("h5_dataset/e.h5","r+")
-f = h5py.File("h5_dataset/f.h5","r+")
+#a = h5py.File("h5_dataset/a.h5","r+")
+#b = h5py.File("h5_dataset/b.h5","r+")
+#c = h5py.File("h5_dataset/c.h5","r+")
+#d = h5py.File("h5_dataset/d.h5","r+")
+#e = h5py.File("h5_dataset/e.h5","r+")
+#f = h5py.File("h5_dataset/f.h5","r+")
 
 #codes for inserting Ground Truth Score to H5 format files
 #there were actually 6 files before merged into one dataset files.
@@ -32,6 +32,7 @@ def whichFile(video,a,b,c,d,e,f):
     print("No Video Has Found")
 
 def create_GTScore(video, h5,data):
+    print(video)
     frame= h5[video]["n_frames"][...]
     gts = []
     user_sum = []
@@ -77,7 +78,7 @@ def create_GTScore(video, h5,data):
 #function labelTextToData reads the info from the text and create labelled data
 
 
-def labelTextToData(file):
+def labelTextToData(file,h5_name):
     with open(file,"r") as gtFile:
         data = None
         while True:
@@ -85,12 +86,14 @@ def labelTextToData(file):
             if video == "":
                 break
             video = video.replace("\n","")
+            video = video.split('/')[-1]
             n = int(gtFile.readline())
             data = []
             for i in range(n):
                 start,end = gtFile.readline().split(' ')
                 data.append((int(start),int(end)))
-            h5 = whichFile(video,a,b,c,d,e,f)
+            #h5 = whichFile(video,a,b,c,d,e,f)
+            h5 = h5py.File(h5_name,"r+")
             gts,us = create_GTScore(video,h5,data)
             frame =int(h5[video]["n_frames"][...])
             us = np.array(us)
@@ -110,8 +113,8 @@ def labelTextToData(file):
 
 
 if __name__ == "__main__":
-    labelTextToData("video1_output.txt")
-    labelTextToData("video2_output.txt")
+    labelTextToData("labeling_output.txt",'origin_h5/lol_dataset.h5')
+    #labelTextToData("video2_output.txt")
 #for ele in a.keys():
 #    frame = a[ele]["n_steps"][...]
 #    us = a[ele]["n_frames"][...]

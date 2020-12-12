@@ -1,0 +1,73 @@
+/home/lol/total_full_video/20200214_DWG_GEN_1_full.mp4
+0
+/home/lol/total_full_video/20200220_GRF_DWG_1_full.mp4
+0
+/home/lol/total_full_video/20200301_GEN_APK_2_full.mp4
+1
+9310 9311
+/home/lol/total_full_video/20200305_AF_T1_1_full.mp4
+1
+8790 8791
+/home/lol/total_full_video/20200325_GRF_GEN_1_full.mp4
+0
+/home/lol/total_full_video/20200328_AF_GEN_1_full.mp4
+0
+/home/lol/total_full_video/20200329_KT_AF_2_full.mp4
+0
+/home/lol/total_full_video/20200402_DWG_HLE_2_full.mp4
+0
+/home/lol/total_full_video/20200402_KT_DRX_1_full.mp4
+0
+/home/lol/total_full_video/20200404_GEN_DRX_1_full.mp4
+0
+/home/lol/total_full_video/20200408_APK_GEN_2_full.mp4
+0
+/home/lol/total_full_video/20200410_DRX_DWG_1_full.mp4
+0
+/home/lol/total_full_video/20200411_APK_HLE_1_full.mp4
+1
+7405 7406
+/home/lol/total_full_video/20200415_DWG_SB_3_full.mp4
+1
+7991 7992
+/home/lol/total_full_video/20200425_T1_GEN_3_full.mp4
+0
+/home/lol/total_full_video/20200428_GRF_SRB_3_full.mp4
+1
+10175 10176
+/home/lol/total_full_video/20200428_SB_DYN_1_full.mp4
+1
+15864 15865
+/home/lol/total_full_video/20200620_T1_HLE_2_full.mp4
+0
+/home/lol/total_full_video/20200621_SP_DWG_1_full.mp4
+1
+9654 9655
+/home/lol/total_full_video/20200625_GEN_DWG_1_full.mp4
+1
+15574 15575
+/home/lol/total_full_video/20200625_GEN_DWG_3_full.mp4
+0
+/home/lol/total_full_video/20200626_HLE_DYN_1_full.mp4
+0
+/home/lol/total_full_video/20200627_DWG_KT_1_full.mp4
+1
+8431 8432
+/home/lol/total_full_video/20200628_SB_T1_2_full.mp4
+0
+/home/lol/total_full_video/20200701_GEN_SB_1_full.mp4
+0
+/home/lol/total_full_video/20200702_DRX_DYN_1_full.mp4
+0
+/home/lol/total_full_video/20200702_DRX_DYN_2_full.mp4
+0
+/home/lol/total_full_video/20200703_GEN_T1_2_full.mp4
+0
+/home/lol/total_full_video/20200703_KT_SP_1_full.mp4
+0
+/home/lol/total_full_video/20200703_KT_SP_2_full.mp4
+0
+/home/lol/total_full_video/20200704_DWG_HLE_2_full.mp4
+0
+/home/lol/total_full_video/20200705_KT_AF_2_full.mp4
+0
