@@ -29,6 +29,10 @@ HIGHLIGHT_VIDEO_PATH = '/home/lol/total_highlight_video/' // Specify directory w
 ```
 python3 ingame_extractor.py
 ```
+`/inference_result` will have text files of inference result of VGGNet. 
+`[name]_raw.txt` is before preprocessing and `[name].txt` is after preprocessing.
+Preprocessing removes short pause breaks and obvious model failures.
+
 
 ## Manual Jobs
 After running `ingame_extractor.py`, `exceptions.txt` will be made.
@@ -36,5 +40,6 @@ After running `ingame_extractor.py`, `exceptions.txt` will be made.
 Games in this list have different number of games compared to highlight videos
 due to highlight videos.
 
-Navigate to `ingame_classifier/inference_result` and manually fix the inference
-result by deleting unwanted termination timestamps due to pauses.
+Navigate to `ingame_classifier/inference_result` and manually fix the inference.
+If there is more number of games in `inference_result`, either add highlight videos or delete timestamps.
+If there is less number of games in `inference_result`, remove highlight videos or add timestamps by watching videos yourself.

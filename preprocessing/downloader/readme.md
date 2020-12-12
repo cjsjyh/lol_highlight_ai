@@ -40,9 +40,9 @@ brew install youtube-dl
 
 Format of videos.txt
 ```
-[2020 우리은행 LCK Summer Split] SP vs. DRX - kt vs. AF
+SP vs. DRX - kt vs. AF
 Published 2020-07-05 @ 07:30:14  Length: 5 h 28 min
-https://twitch.tv/videos/670539237
+https://twitch.tv/videos/12341234
 ```
 
 ## Execution
