@@ -1,13 +1,18 @@
 ## Prerequisites
+Installation
+```
 install -y pytorch torchvision -c pytorch
 conda install -c conda-forge matplotlib
 pip3 install opencv-python
 pip3 install moviepy
+```
 
+Create folders for output
+```
 mkdir inference_result/
-    -> mkdir inference_result/temp
-
+mkdir inference_result/temp
 mkdir full_video
+```
 
 Set path for following lines
 ```
