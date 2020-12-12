@@ -1,5 +1,8 @@
 '''
-
+The purpose of file is to find where highlight is in full game videos.
+To find where highlight is, file check both full video and highlight video of same game.
+file assumes that all there are all full videos in "~/total_full_video" and highlight videos in "~/total_highlight_video".
+ 
 '''
 
 #include "opencv2/core.hpp"
@@ -22,7 +25,7 @@ using namespace cv;
 // !!! It needs to chagne bitest template value to (num_patch * num_patch)C2 * 2, when you want to change num_patch !!!
 #define BITSET_LENGTH 300 
 #define THRESHOLD_VALUE 30 // The lower value, the stricter criterion
-#define HIGHLIHGHT_START_FRAME 300 // The frame where to look first
+#define HIGHLIHGHT_START_FRAME 300 // The position of frame where to look first
 
 enum FIND_STATE {NORMAL_FIND, FAST_FIND, SLOW_FIND};
 
