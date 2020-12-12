@@ -2,7 +2,9 @@
 # coding: utf-8
 
 
-root_path = './'
+MODEL_PATH = "./result_model/final_model.pth"
+FULL_RAW_PATH = "/home/lol/lol_highlight_ai/preprocessing/downloader/full_raw/"
+CLASSIFIER_PATH = "/home/lol/lol_highlight_ai/preprocessing/ingame_classifier/"
 
 import torch
 import torch.nn as nn
@@ -79,7 +81,7 @@ def make_layers(cfg, batch_norm=False):
 
 # Load Model
 new_net = VGG(make_layers(cfg),2,True).to(device)
-new_net.load_state_dict(torch.load(root_path + "/result_model/final_model.pth"))
+new_net.load_state_dict(torch.load(MODEL_PATH))
 
 def is_ingame(data_set):
     with torch.no_grad():
@@ -103,7 +105,6 @@ import matplotlib.pyplot as plt
 from PIL import Image
 
 import cv2
-
 import math
 
 def FindTransitions(path_in, video_name, path_out, start = -1, until=-1, frame=60):
@@ -156,6 +157,7 @@ def FindTransitions(path_in, video_name, path_out, start = -1, until=-1, frame=6
                 # If frame is in game
                 if (isInGame == 1):
                     if (not curInGame):
+                        # 2 frames need to be in game in a row
                         if (curInGameCount == 2):
                             #print(f"Game started {_hr}:{_min}:{_sec}")
                             result_file.write(f"start {saved_frame[index]} {in_seconds} {_hr}:{_min}:{_sec}\n")
@@ -192,25 +194,23 @@ def FindTransitions(path_in, video_name, path_out, start = -1, until=-1, frame=6
 import util
 
 if __name__ == "__main__":
-    full_raw_path = "/home/lol/lol_highlight_ai/preprocessing/downloader/full_raw/"
-    classifier_path = "/home/lol/lol_highlight_ai/preprocessing/ingame_classifier/"
-    full_raw_videos = util.get_filenames(full_raw_path)
+    full_raw_videos = util.get_filenames(FULL_RAW_PATH)
     for index, full_raw_video in enumerate(full_raw_videos):
         video_no_ext = full_raw_video.replace('.mp4','')
         print(f"[Start {index+1}/{len(full_raw_videos)}] "+video_no_ext)
         FindTransitions(
-            full_raw_path,
+            FULL_RAW_PATH,
             full_raw_video,
-            classifier_path + "inference_result"
+            CLASSIFIER_PATH + "inference_result"
         )
 
         util.postprocess_timestamp('./inference_result/' + video_no_ext)
 
         util.cutVideo(
             video_no_ext,
-            classifier_path + 'inference_result/',
-            full_raw_path,
-            classifier_path + 'full_video/'
+            CLASSIFIER_PATH + 'inference_result/',
+            FULL_RAW_PATH,
+            CLASSIFIER_PATH + 'full_video/'
         )
         print(f"[End {index+1}/{len(full_raw_videos)}] "+video_no_ext)
 
