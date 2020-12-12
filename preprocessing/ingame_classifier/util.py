@@ -2,6 +2,8 @@ from os import walk
 import glob
 from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
 
+HIGHLIGHT_VIDEO_PATH = '/home/lol/total_highlight_video/'
+
 #----------------------
 # Common
 #----------------------
@@ -17,6 +19,9 @@ def get_filenames(path):
 #'2020_promotion_highlight_video/','2020_spring_highlight_video/',
 #'2020_msc_highlight_video/', '2020_summer_highlight_video/']
 folder_list=['']
+#-----------------------
+# Find hightlight video from folders
+#-----------------------
 def findHighlightVideoPath(video_name, highlight_path):
     for folder_name in folder_list:
         result = glob.glob(f"{highlight_path}{folder_name}{video_name}*")
@@ -27,7 +32,6 @@ def findHighlightVideoPath(video_name, highlight_path):
 #-----------------------
 # Get game series
 #-----------------------
-
 def get_game_info(highlight_path, full_name):
   full_name_split = full_name.split('.')
   file_ext = full_name_split[1]
@@ -38,12 +42,11 @@ def get_game_info(highlight_path, full_name):
 
   file_name_split = file_name.split('_')
   game_date = file_name_split[0]
-  # Find last set number for games in 1 video
   game_info = []
   for i in range(1, int(len(file_name_split)/2)+1):
     team1 = file_name_split[i*2 - 1]
     team2 = file_name_split[i*2]
-    # Find highlight videos
+    # Get list of highlight videos
     filtered_list = glob.glob(f"{highlight_path}{game_date}_{team1}_{team2}*")
     if (len(filtered_list) == 0):
         # Try with reverse order
@@ -54,10 +57,13 @@ def get_game_info(highlight_path, full_name):
         if(len(filtered_list) == 0):
             return None
     last_set_num = 0
+
+    # Find game from list
     for name in filtered_list:
       if (name == full_name):
         break
       else:
+        # Save the biggest game set number
         name = name.split('/')[-1]
         name_split = name.split('_')
         set_num = int(name_split[3])
@@ -79,8 +85,7 @@ def cutVideo(filename, inference_path, raw_path, result_path):
     print("Cut Video "+filename+" start")
     result_file = open(f"{inference_path}{filename}.txt","r")
     game_date = filename.split('_')[0]
-    highlight_path = findHighlightVideoPath(game_date,
-            '/home/lol/total_highlight_video/')
+    highlight_path = findHighlightVideoPath(game_date, HIGHLIGHT_VIDEO_PATH)
     if(highlight_path == ""):
         return
 
@@ -93,13 +98,13 @@ def cutVideo(filename, inference_path, raw_path, result_path):
         result_file.close()
         return
 
-    # Make pairs
+    # Make start time and end time pairs
     cut_ranges = []
     while True:
         start_line = result_file.readline()
         end_line = result_file.readline()
         if not start_line or not end_line : break
-        
+
         start_split =  start_line.split()
         end_split = end_line.split()
         if start_split[0] != "start" or end_split[0] != "finish": break
@@ -120,6 +125,7 @@ def cutVideo(filename, inference_path, raw_path, result_path):
         result_file.close()
         return
 
+    # cut video
     info_index = 0
     game_index = 1
     for game_range in cut_ranges:
@@ -135,23 +141,6 @@ def cutVideo(filename, inference_path, raw_path, result_path):
         game_index += 1
     print("Cut Video done")
     result_file.close()
-#cutVideo(
-#    '20200228_APK_DRX_T1_SB',
-#    '/home/lol/lol_highlight_ai/preprocessing/ingame_classifier/inference_result/',
-#    '/home/lol/lol_highlight_ai/preprocessing/downloader/full_raw/',
-#    '/home/lol/lol_highlight_ai/preprocessing/ingame_classifier/full_video/'
-#    )
-
-a = '/home/lol/lol_highlight_ai/preprocessing/ingame_classifier/inference_result/'
-b = '/home/lol/lol_highlight_ai/preprocessing/downloader/full_raw/'
-c = '/home/lol/lol_highlight_ai/preprocessing/ingame_classifier/full_video/'
-
-#cutVideo('20200425_GEN_T1',a,b,c)
-#cutVideo('20200702_HLE_AF_DRX_DYN',a,b,c)
-#cutVideo('20200404_APK_KT_SB_HLE_GEN_DRX',a,b,c)
-
-cutVideo('20200325_GRF_GEN_KT_DWG_HLE_DRX',a,b,c)
-cutVideo('20200402_AF_APK_DWG_HLE_KT_DRX',a,b,c)
 
 
 #------------------------------
@@ -215,6 +204,5 @@ def postprocess_timestamp(filename):
     file_out.close()
     print("Postprocessing done")
 
-#postprocess_timestamp('./inference_result/20191026_GRF_IG_FPX_FNC')
 
 

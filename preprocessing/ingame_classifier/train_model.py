@@ -1,15 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[2]:
-
-
-from google.colab import drive
-drive.mount('/content/gdrive')
-
-
-# In[3]:
-
+#from google.colab import drive
+#drive.mount('/content/gdrive')
 
 import torch
 import torch.nn as nn
@@ -20,20 +13,11 @@ from torch.utils.data import DataLoader
 import torchvision
 from torchvision import transforms
 
-
-# In[4]:
-
-
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 torch.manual_seed(777)
 if device == 'cuda':
   torch.cuda.manual_seed_all(777)
-print(torch.cuda.memory_allocated(device))
-
-
-# In[5]:
-
 
 #------------------------
 # Load data
@@ -51,15 +35,7 @@ test_data = torchvision.datasets.ImageFolder(root=root_path + '/test_data', tran
 train_set = DataLoader(dataset = train_data, batch_size=15, shuffle = True, num_workers=2)
 test_set = DataLoader(dataset = test_data, batch_size=len(test_data))
 
-
-# In[6]:
-
-
 cfg = [64, 'M', 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'] # 8 + 3 =vgg11
-
-
-# In[7]:
-
 
 #------------------------
 # Network
@@ -101,10 +77,6 @@ class VGG(nn.Module):
                 nn.init.normal_(m.weight, 0, 0.01)
                 nn.init.constant_(m.bias, 0)
 
-
-# In[8]:
-
-
 def make_layers(cfg, batch_norm=False):
     layers = []
     in_channels = 3
@@ -123,23 +95,12 @@ def make_layers(cfg, batch_norm=False):
     return nn.Sequential(*layers)
 
 
-# In[ ]:
-
-
 #------------------------
 # Initialization
 #------------------------
 net = VGG(make_layers(cfg),2,True).to(device)
 optimizer = optim.Adam(net.parameters(), lr=0.0001)
 loss_func = nn.CrossEntropyLoss().to(device)
-
-# # Testing
-# test_input = (torch.Tensor(6,3,240,426)).to(device)
-# test_out = net(test_input)
-# print(test_out)
-
-
-# In[ ]:
 
 
 #------------------------
@@ -165,10 +126,6 @@ for epoch in range(epochs):
   torch.save(net.state_dict(), root_path + "/result_model/epoch{}_model.pth".format(epoch+1))
 print('Learning Finished!')
 torch.save(net.state_dict(), root_path + "/result_model/final_model.pth")
-
-
-# In[11]:
-
 
 #------------------------
 # Evaluation

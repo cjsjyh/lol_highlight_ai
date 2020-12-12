@@ -12,6 +12,8 @@ from model.vasnet_audio128_concat import VASNet_Audio128_Concat
 from model.vasnet_audio20_concat_regressor import VASNet_Audio20_Concat_regressor
 from model.vasnet_resnet_model import VASNet_resnet
 
+#configuration file for HPO
+
 class HParameters:
 
     def __init__(self):

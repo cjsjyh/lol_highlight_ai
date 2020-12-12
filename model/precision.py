@@ -1,6 +1,14 @@
 import h5py
 import argparse
 
+"""
+find best scored video among evaluation videos.
+command example : (python precision.py -i 0 -d data)
+                    : find best video among 0th cross validation's evaluation
+                    video
+before run this, you need to make evaluation dataset made by main.py
+
+"""
 parser = argparse.ArgumentParser("get number of dataset")
 parser.add_argument("-i", '--index', type = int, help = "index 0-5")
 parser.add_argument("-d", "--data", type = str, help = "name of h5 dataset")
@@ -17,25 +25,7 @@ max_game = None
 
 max_f1 = 0
 max_f1_game = None
-"""
-pred = result['merge']['20200208_APK_DWG_1_full.mp4']['machine_summary'][...]
-truth = target['20200208_APK_DWG_1_full.mp4']['user_summary'][...].reshape(-1)
 
-ans = []
-for ele in range(pred.shape[0]):
-    if pred[ele] > 0:
-        if truth[ele] >0:
-            ans.append(2)
-        else:
-            ans.append(1)
-    elif truth[ele] > 0:
-        ans.append(3)
-    else:
-        ans.append(0)
-file = open("apkdwg.txt","w")
-for ele in ans:
-    file.write(str(ele))
-    """
 #둘다 0 : 0
 #둘다 1 : 2
 #예상값만 1 : 1

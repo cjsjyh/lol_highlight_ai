@@ -20,7 +20,7 @@ mkdir result/result_$RESULTDIR
 python3 main.py -t -m $MODEL -o result/result_$RESULTDIR/ > result/result_$RESULTDIR/$LOGNAME.log
 python3 main.py -m $MODEL -o result/result_$RESULTDIR/ > result/result_$RESULTDIR/evaluation.$MODEL.$LOGNAME.log
 mv data/models/$H5* result/result_$RESULTDIR
-#mv data/results.txt result/result_$RESULTDIR
+mv data/results.txt result/result_$RESULTDIR
 mv data/splits/$H5* result/result_$RESULTDIR
 cp datasets/$H5* result/result_$RESULTDIR
 cp machine_sum.py result/result_$RESULTDIR
@@ -33,15 +33,15 @@ do
 done
 
 
-#mkdir sum_videos
-#for i in $RAN
-#do
-#    mkdir sum_videos/$i
-#done
-#
-#for i in $RAN
-#do
-#    python3 machine_sum.py -i $i -d $H5
-#done
+mkdir sum_videos
+for i in $RAN
+do
+    mkdir sum_videos/$i
+done
+
+for i in $RAN
+do
+    python3 machine_sum.py -i $i -d $H5
+done
 
 rm $H5.h5
