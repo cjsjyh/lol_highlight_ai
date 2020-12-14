@@ -16,7 +16,7 @@ args = parser.parse_args()
 
 num = str(args.index)
 name = args.data
-result = h5py.File(name+'_'+num.replace("\n","")+".h5","r")
+result = h5py.File("splits/"+name+'_'+num.replace("\n","")+".h5","r")
 target = h5py.File(name+".h5","r")
 games = result[name].keys()
 
